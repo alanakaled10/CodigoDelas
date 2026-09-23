@@ -1,5 +1,7 @@
 # Código Delas · O Legado Perdido
 
+Repositório voltado para a oficina Código Delas, Universidade Positivo Londrina.
+
 Site da oficina **Código Delas** (Mochilão 2026, 8 de outubro). É um jogo físico-digital:
 as participantes seguem duas rotas pela sala, escaneiam QR Codes, recuperam registros
 de pioneiras da tecnologia e juntam os fragmentos para abrir o tesouro final.
