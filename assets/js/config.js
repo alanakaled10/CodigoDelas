@@ -11,11 +11,11 @@ window.CD = window.CD || {};
 
 CD.config = {
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    databaseURL: "",
-    projectId: "",
-    appId: ""
+    apiKey: "AIzaSyAZe9r2xuT7SrSFU57MxlVQ0QxLWQwt0Wc",
+    authDomain: "codigo-delas.firebaseapp.com",
+    databaseURL: "https://codigo-delas-default-rtdb.firebaseio.com",
+    projectId: "codigo-delas",
+    appId: "1:328660739947:web:cc3ea07b17113c11a28e2e"
   },
 
   // Senha do painel admin no MODO LOCAL (no modo Firebase o login é por e-mail e senha).
