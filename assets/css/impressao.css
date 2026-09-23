@@ -1,0 +1,88 @@
+/* Versão impressa: fundo claro para economizar tinta e ficar legível no papel. */
+:root {
+  --tinta: #14172b;
+  --suave: #555a78;
+  --linha: #d7d9e6;
+  --teal: #0f9c8c;
+  --coral: #e2553f;
+  --rosa: #d6307e;
+  --fonte: "Space Grotesk", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--fonte); color: var(--tinta); background: #eceef5; }
+h1, h2, h3 { margin: 0 0 .4em; line-height: 1.15; }
+p { margin: 0 0 .8em; }
+
+.barra-controle {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+  padding: 16px 24px; background: #fff; border-bottom: 1px solid var(--linha);
+}
+.barra-controle p { margin: 4px 0 0; color: var(--suave); font-size: 14px; }
+.barra-controle fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.barra-controle label { font-size: 15px; display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.barra-controle button {
+  font: 600 16px var(--fonte); padding: 12px 22px; border-radius: 10px; border: 0; cursor: pointer;
+  color: #fff; background: linear-gradient(135deg, var(--rosa), var(--coral));
+}
+#aviso-url { color: var(--coral); }
+
+.pagina {
+  width: 210mm; min-height: 297mm; margin: 24px auto; padding: 16mm;
+  background: #fff; box-shadow: 0 6px 24px rgba(20, 23, 43, .12);
+  display: flex; flex-direction: column;
+}
+.pagina--meia { min-height: 0; }
+
+.cabeca { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10mm; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--suave); }
+.marca { font-family: var(--fonte); font-weight: 700; text-transform: none; letter-spacing: 0; font-size: 16px; color: var(--tinta); }
+
+.teal { --cor: var(--teal); }
+.coral { --cor: var(--coral); }
+.geral { --cor: var(--rosa); }
+
+/* Cartaz de QR Code */
+.cartaz { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 3px solid var(--cor); border-radius: 18px; padding: 12mm; }
+.cartaz__simbolo { font-size: 44px; color: var(--cor); line-height: 1; }
+.cartaz__titulo { font-size: 40px; margin: 6mm 0 2mm; }
+.cartaz__sub { font-size: 18px; color: var(--suave); }
+.cartaz__qr { width: 120mm; max-width: 100%; margin: 8mm 0; }
+.cartaz__qr svg { width: 100%; height: auto; display: block; }
+.cartaz__url { font-family: var(--mono); font-size: 12px; color: var(--suave); word-break: break-all; }
+.coord { font-family: var(--mono); font-weight: 700; font-size: 28px; color: var(--cor); }
+
+/* Pista impressa */
+.pista { border: 2px solid var(--cor); border-radius: 16px; padding: 10mm; flex: 1; }
+.pista__nome { font-size: 34px; }
+.pista__meta { font-family: var(--mono); font-size: 13px; color: var(--suave); margin-bottom: 6mm; }
+.pista p { font-size: 17px; line-height: 1.55; }
+.pista__curiosidade { background: #fff7e0; border-radius: 10px; padding: 4mm 5mm; }
+.pista__pergunta { font-size: 22px; margin-top: 8mm; }
+.pista ol { list-style: upper-alpha; font-size: 18px; line-height: 1.9; padding-left: 8mm; }
+.pista__rodape { margin-top: auto; padding-top: 6mm; font-size: 14px; color: var(--suave); border-top: 1px dashed var(--linha); }
+
+/* Tabelas */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+th { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); }
+td.mono { font-family: var(--mono); }
+td.forte { font-weight: 700; color: var(--cor); }
+.url-pequena { font-family: var(--mono); font-size: 10px; word-break: break-all; color: var(--suave); }
+.bloco { margin-bottom: 8mm; }
+.codigo-final { font-family: var(--mono); font-size: 28px; font-weight: 700; letter-spacing: .12em; color: var(--rosa); }
+
+.oculto { display: none; }
+
+@page { size: A4; margin: 0; }
+@media print {
+  body { background: #fff; }
+  .barra-controle { display: none; }
+  .pagina { margin: 0; box-shadow: none; width: auto; min-height: 297mm; page-break-after: always; break-after: page; }
+  .pagina:last-child { page-break-after: auto; break-after: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media screen and (max-width: 820px) {
+  .pagina { width: calc(100% - 24px); padding: 20px; min-height: 0; }
+}

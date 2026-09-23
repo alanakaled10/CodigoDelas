@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "grupos": {
+      ".read": true,
+      ".write": "auth != null",
+      "$id": {
+        ".validate": "newData.hasChildren(['nome', 'pontos'])",
+        "nome": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "pontos": { ".validate": "newData.isNumber()" }
+      }
+    },
+    "cronometro": {
+      ".read": true,
+      ".write": "auth != null"
+    }
+  }
+}
