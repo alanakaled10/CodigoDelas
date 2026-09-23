@@ -17,19 +17,42 @@ Feito só com HTML, CSS e JavaScript. Não precisa de build.
 | `estacao.html?id=...` | Participantes | Registro da pioneira, desafio, dica e fragmento |
 | `final.html` | Participantes | Tesouro trancado por senha e mensagem final |
 | `ranking.html` | Telão e celulares | Ranking e cronômetro em tempo real |
-| `admin.html` | Equipe | Login, cadastro de grupos, pontuação e cronômetro |
+| `admin.html` | Equipe | Login, cadastro de grupos, pontuação, cronômetro e editor de perguntas |
 | `impressao.html` | Equipe | Cartazes com QR Code, pistas impressas, gabarito e planilha mestra |
 
-## Onde editar
+## Criar e editar perguntas pelo painel
 
-- **Conteúdo do jogo** (pioneiras, perguntas, respostas, dicas, fragmentos, coordenadas,
-  código final): `assets/js/conteudo.js`. Os textos atuais são rascunho e precisam ser
-  conferidos por cada responsável.
+No `admin.html`, a aba **Perguntas** permite que as admins:
+
+- criem uma estação nova em qualquer rota (nome da pioneira, texto do registro, curiosidade,
+  pergunta com 2 a 4 alternativas, dica, coordenada e fragmento do código);
+- editem, removam e mudem a ordem das estações com as setas;
+- abram a estação como as participantes vão ver (botão **Ver**);
+- voltem às perguntas originais com **Restaurar padrão**.
+
+A próxima coordenada, o início de cada rota e o **código final** são calculados sozinhos a
+partir da ordem das estações e dos fragmentos (Teal primeiro, depois Coral). O código atual
+aparece no topo da aba.
+
+Cuidados:
+
+- Com o Firebase ativo, as mudanças aparecem na hora para todas as participantes. No modo
+  local, ficam salvas só no navegador de quem editou.
+- Cada estação tem um código fixo (ex.: `k7x2`) que vai no QR Code. Editar uma estação não
+  muda o código, mas **estações novas precisam de um QR Code novo** e estações removidas
+  deixam de funcionar. Reimprima pela `impressao.html` depois de mudanças.
+- A resposta da pergunta precisa estar no texto do registro: o jogo não testa conhecimento prévio.
+
+## Onde editar no código
+
+- **Conteúdo padrão do jogo** (usado enquanto ninguém salvar perguntas pelo painel):
+  `assets/js/conteudo.js`. Os textos atuais são rascunho e precisam ser conferidos por
+  cada responsável.
 - **Configurações** (Firebase, senha do modo local, duração do cronômetro, endereço do site,
   link dos cursos): `assets/js/config.js`.
 - **Visual**: `assets/css/style.css` (site) e `assets/css/impressao.css` (impressão).
 
-Código final atual: `LEGADO DELAS` (Teal: LE + GA + DO, Coral: DE + LA + S).
+Código final padrão: `LEGADO DELAS` (Teal: LE + GA + DO, Coral: DE + LA + S).
 
 ## Rodar no computador
 
@@ -55,7 +78,7 @@ Firebase (gratuito para esse volume):
 1. Acesse <https://console.firebase.google.com> e crie um projeto.
 2. Em **Build > Realtime Database**, clique em **Criar banco de dados** e comece no modo bloqueado.
 3. Na aba **Regras** do banco, cole o conteúdo de `database.rules.json` e publique.
-   Assim qualquer pessoa pode ver o ranking, mas só admins logadas podem alterar.
+   Assim qualquer pessoa pode ver o ranking e as perguntas, mas só admins logadas podem alterar.
 4. Em **Build > Authentication**, ative o provedor **E-mail/senha** e, na aba **Usuários**,
    crie uma conta para cada admin.
 5. Em **Configurações do projeto > Seus apps**, adicione um app **Web** (`</>`) e copie os

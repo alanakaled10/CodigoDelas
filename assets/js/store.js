@@ -1,5 +1,5 @@
 /*
- * Camada de dados: grupos, pontuações e cronômetro.
+ * Camada de dados: grupos, pontuações, cronômetro e perguntas criadas pelas admins.
  *
  * Modo Firebase: usa o Realtime Database e sincroniza todos os aparelhos.
  * Modo local: usa o localStorage e sincroniza apenas as abas do mesmo navegador.
@@ -11,6 +11,7 @@ window.CD = window.CD || {};
   const CHAVE_GRUPOS = "cd:grupos";
   const CHAVE_CRONOMETRO = "cd:cronometro";
   const CHAVE_ADMIN = "cd:admin";
+  const CHAVE_CONTEUDO = "cd:conteudo";
 
   const cfg = CD.config.firebase || {};
   const usarFirebase = Boolean(cfg.apiKey && cfg.databaseURL);
@@ -42,7 +43,7 @@ window.CD = window.CD || {};
 
   /* ---------------- Modo local ---------------- */
   function criarLocal() {
-    const ouvintes = { grupos: [], cronometro: [], auth: [] };
+    const ouvintes = { grupos: [], cronometro: [], auth: [], conteudo: [] };
 
     function ler(chave, padrao) {
       try { return JSON.parse(localStorage.getItem(chave)) || padrao; } catch (e) { return padrao; }
@@ -54,6 +55,7 @@ window.CD = window.CD || {};
     function avisar(chave) {
       if (chave === CHAVE_GRUPOS) ouvintes.grupos.forEach((cb) => cb(listaDeGrupos(ler(CHAVE_GRUPOS, {}))));
       if (chave === CHAVE_CRONOMETRO) ouvintes.cronometro.forEach((cb) => cb(ler(CHAVE_CRONOMETRO, cronometroPadrao())));
+      if (chave === CHAVE_CONTEUDO) ouvintes.conteudo.forEach((cb) => cb(ler(CHAVE_CONTEUDO, null)));
     }
     // Outras abas do mesmo navegador recebem o evento "storage".
     window.addEventListener("storage", (e) => avisar(e.key));
@@ -110,7 +112,16 @@ window.CD = window.CD || {};
         gravar(CHAVE_GRUPOS, grupos);
       },
       async limparGrupos() { gravar(CHAVE_GRUPOS, {}); },
-      async salvarCronometro(estado) { gravar(CHAVE_CRONOMETRO, estado); }
+      async salvarCronometro(estado) { gravar(CHAVE_CRONOMETRO, estado); },
+
+      // Estações criadas pelas admins. null significa "usar o conteúdo padrão".
+      lerConteudo: async () => ler(CHAVE_CONTEUDO, null),
+      onConteudo: (cb) => inscrever(ouvintes.conteudo, cb, () => ler(CHAVE_CONTEUDO, null)),
+      async salvarConteudo(estacoes) { gravar(CHAVE_CONTEUDO, estacoes); },
+      async restaurarConteudo() {
+        localStorage.removeItem(CHAVE_CONTEUDO);
+        avisar(CHAVE_CONTEUDO);
+      }
     };
   }
 
@@ -186,7 +197,20 @@ window.CD = window.CD || {};
       },
       async removerGrupo(id) { await pronto; await db.ref("grupos/" + id).remove(); },
       async limparGrupos() { await pronto; await db.ref("grupos").remove(); },
-      async salvarCronometro(estado) { await pronto; await db.ref("cronometro").set(estado); }
+      async salvarCronometro(estado) { await pronto; await db.ref("cronometro").set(estado); },
+
+      // Estações criadas pelas admins. null significa "usar o conteúdo padrão".
+      async lerConteudo() {
+        await pronto;
+        return (await db.ref("conteudo/estacoes").once("value")).val();
+      },
+      onConteudo: (cb) => depois(() => {
+        const ref = db.ref("conteudo/estacoes");
+        const h = ref.on("value", (s) => cb(s.val()));
+        return () => ref.off("value", h);
+      }),
+      async salvarConteudo(estacoes) { await pronto; await db.ref("conteudo/estacoes").set(estacoes); },
+      async restaurarConteudo() { await pronto; await db.ref("conteudo").remove(); }
     };
   }
 

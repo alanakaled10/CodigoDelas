@@ -1,4 +1,4 @@
-(function () {
+CD.aoCarregar(function () {
   const { $, esc, normalizar } = CD.util;
   const { final, rotas, codigoFinal } = CD.conteudo;
 
@@ -70,4 +70,4 @@
   }
 
   desenharCadeado();
-})();
+});

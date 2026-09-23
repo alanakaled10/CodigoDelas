@@ -56,7 +56,14 @@
         </div>
       </div>
 
-      <div class="admin-grid" style="margin-top: 24px">
+      <div class="abas" role="tablist">
+        <button class="aba" role="tab" data-aba="oficina" aria-selected="true">Oficina</button>
+        <button class="aba" role="tab" data-aba="perguntas" aria-selected="false">Perguntas</button>
+      </div>
+
+      <div id="aba-perguntas" hidden></div>
+
+      <div class="admin-grid" id="aba-oficina">
         <div style="display: grid; gap: 20px">
           <section class="cartao">
             <span class="rotulo">Cronômetro da sessão</span>
@@ -98,8 +105,23 @@
       </div>`;
 
     $("#sair").addEventListener("click", () => store.logout());
+    ligarAbas();
     ligarCronometro();
     ligarGrupos();
+    cancelar.push(CD.adminPerguntas($("#aba-perguntas")));
+  }
+
+  function ligarAbas() {
+    let atual = "oficina";
+    try { atual = sessionStorage.getItem("cd:aba") || "oficina"; } catch (e) { /* ignora */ }
+    const mostrar = (aba) => {
+      document.querySelectorAll(".aba").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.aba === aba)));
+      $("#aba-oficina").hidden = aba !== "oficina";
+      $("#aba-perguntas").hidden = aba !== "perguntas";
+      try { sessionStorage.setItem("cd:aba", aba); } catch (e) { /* ignora */ }
+    };
+    document.querySelectorAll(".aba").forEach((b) => b.addEventListener("click", () => mostrar(b.dataset.aba)));
+    mostrar(atual);
   }
 
   /* ---------- Cronômetro ---------- */

@@ -36,7 +36,32 @@ window.CD = window.CD || {};
     }
   };
 
+  const CACHE_CONTEUDO = "cd:conteudo-cache";
+
+  // Cópia das estações padrão (conteudo.js), usada para restaurar pelo painel.
+  CD.estacoesPadrao = JSON.parse(JSON.stringify(CD.conteudo.estacoes));
+
   CD.jogo = {
+    // Organiza as estações por rota e calcula o que depende da ordem:
+    // início de cada rota, próxima coordenada de cada estação e código final.
+    aplicarEstacoes(lista) {
+      const c = CD.conteudo;
+      const validas = (lista || []).filter((e) => e && e.id && c.rotas[e.rota]);
+      c.estacoes = validas.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+      const partes = [];
+      Object.entries(c.rotas).forEach(([id, rota]) => {
+        const daRota = c.estacoes.filter((e) => e.rota === id);
+        daRota.forEach((e, i) => {
+          e.ordem = i + 1;
+          e.proxima = daRota[i + 1] ? daRota[i + 1].coordenada : null;
+        });
+        rota.estacoes = daRota.map((e) => e.id);
+        rota.inicio = daRota[0] ? daRota[0].coordenada : "?";
+        partes.push(daRota.map((e) => e.fragmento).join(""));
+      });
+      c.codigoFinal = partes.filter(Boolean).join(" ");
+    },
+
     estacao(id) { return CD.conteudo.estacoes.find((e) => e.id === id); },
 
     estacoesDaRota(rota) {
@@ -84,6 +109,36 @@ window.CD = window.CD || {};
       }).join("");
     }
   };
+
+  CD.jogo.aplicarEstacoes(CD.conteudo.estacoes);
+
+  // Carrega as perguntas salvas pelas admins antes de desenhar a página.
+  // Sem internet, usa a última versão vista neste aparelho; sem nada salvo, o conteúdo padrão.
+  function lerCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_CONTEUDO)); } catch (e) { return null; }
+  }
+  function estacoesSalvas(obj) {
+    const lista = Object.values(obj || {});
+    return lista.length ? lista : null;
+  }
+  CD.conteudoPronto = (async function () {
+    if (!CD.store || !CD.store.lerConteudo) return;
+    try {
+      const limite = new Promise((_, falha) => setTimeout(() => falha(new Error("tempo esgotado")), 6000));
+      const salvo = await Promise.race([CD.store.lerConteudo(), limite]);
+      const lista = estacoesSalvas(salvo);
+      if (lista) CD.jogo.aplicarEstacoes(lista);
+      try {
+        if (lista) localStorage.setItem(CACHE_CONTEUDO, JSON.stringify(salvo));
+        else localStorage.removeItem(CACHE_CONTEUDO);
+      } catch (e) { /* ignora */ }
+    } catch (e) {
+      const lista = estacoesSalvas(lerCache());
+      if (lista) CD.jogo.aplicarEstacoes(lista);
+    }
+  })();
+
+  CD.aoCarregar = function (fn) { CD.conteudoPronto.then(fn); };
 
   // Chip do cronômetro no topo das páginas do jogo. Só aparece quando a sessão está rodando.
   CD.chipCronometro = function (elemento) {

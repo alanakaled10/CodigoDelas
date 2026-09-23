@@ -1,4 +1,4 @@
-(function () {
+CD.aoCarregar(function () {
   const { $, esc } = CD.util;
   const { missao, rotas } = CD.conteudo;
 
@@ -17,4 +17,4 @@
       </p>
       <a class="botao botao--${id} botao--bloco" href="rota.html?r=${id}">Seguir a ${esc(rota.nome)}</a>
     </article>`).join("");
-})();
+});

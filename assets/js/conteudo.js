@@ -4,21 +4,22 @@
  * IMPORTANTE: os textos abaixo são um RASCUNHO. Cada responsável deve conferir
  * datas, nomes e contribuições em fontes confiáveis antes do evento.
  *
- * Como editar:
+ * Este arquivo guarda o CONTEÚDO PADRÃO. As admins também podem criar e
+ * editar as estações pelo painel (admin.html, aba Perguntas); quando houver
+ * perguntas salvas pelo painel, elas substituem as estações abaixo.
+ *
+ * Campos de cada estação:
  *  - `id` é o código que vai no endereço do QR Code (estacao.html?id=...).
  *    Use códigos não sequenciais para que ninguém adivinhe a próxima etapa.
- *  - `coordenada` é a posição física na sala (fileira + número). Ajuste
- *    depois que o mapa real do laboratório estiver pronto.
+ *  - `ordem` define a sequência dentro da rota. A próxima coordenada, o início
+ *    da rota e o código final são calculados automaticamente a partir dela.
+ *  - `coordenada` é a posição física na sala (fileira + número).
  *  - `correta` é o índice da alternativa certa (0 = primeira).
  *  - `fragmento` é o pedaço do código final entregue ao acertar.
  */
 window.CD = window.CD || {};
 
 CD.conteudo = {
-  // Junção de todos os fragmentos, na ordem Teal e depois Coral.
-  // A comparação ignora espaços, acentos e maiúsculas.
-  codigoFinal: "LEGADO DELAS",
-
   missao: {
     titulo: "O Legado Perdido",
     chamada: "Os nomes desapareceram, mas as ideias continuam presentes em tudo o que usamos. Encontrem as pioneiras, recuperem os fragmentos e reconstruam o Código Delas.",
@@ -37,16 +38,12 @@ CD.conteudo = {
     teal: {
       nome: "Rota Teal",
       simbolo: "●",
-      forma: "círculo",
-      inicio: "A1",
-      estacoes: ["k7x2", "m4q9", "r2w8"]
+      forma: "círculo"
     },
     coral: {
       nome: "Rota Coral",
       simbolo: "▲",
-      forma: "triângulo",
-      inicio: "A6",
-      estacoes: ["p9d3", "h6z1", "v3n5"]
+      forma: "triângulo"
     }
   },
 
@@ -54,6 +51,7 @@ CD.conteudo = {
     {
       id: "k7x2",
       rota: "teal",
+      ordem: 1,
       coordenada: "A1",
       pioneira: "Ada Lovelace",
       periodo: "1815 a 1852 · Inglaterra",
@@ -64,12 +62,12 @@ CD.conteudo = {
       opcoes: ["O telégrafo elétrico", "A Máquina Analítica", "O ENIAC", "A máquina de escrever"],
       correta: 1,
       dica: "Procurem no registro o nome da máquina projetada por Charles Babbage.",
-      fragmento: "LE",
-      proxima: "C2"
+      fragmento: "LE"
     },
     {
       id: "m4q9",
       rota: "teal",
+      ordem: 2,
       coordenada: "C2",
       pioneira: "Grace Hopper",
       periodo: "1906 a 1992 · Estados Unidos",
@@ -80,12 +78,12 @@ CD.conteudo = {
       opcoes: ["Que só deveria usar números", "Que deveria ser feita com cabos e interruptores", "Que deveria usar palavras próximas da língua humana", "Que só militares poderiam programar"],
       correta: 2,
       dica: "Releiam a última frase do registro.",
-      fragmento: "GA",
-      proxima: "E1"
+      fragmento: "GA"
     },
     {
       id: "r2w8",
       rota: "teal",
+      ordem: 3,
       coordenada: "E1",
       pioneira: "Irmã Mary Kenneth Keller",
       periodo: "1913 a 1985 · Estados Unidos",
@@ -96,12 +94,12 @@ CD.conteudo = {
       opcoes: ["Um dos primeiros doutorados em Ciência da Computação dos EUA", "A invenção do primeiro celular", "A criação da internet", "O primeiro jogo de videogame"],
       correta: 0,
       dica: "O registro fala de um título acadêmico recebido em 1965.",
-      fragmento: "DO",
-      proxima: null
+      fragmento: "DO"
     },
     {
       id: "p9d3",
       rota: "coral",
+      ordem: 1,
       coordenada: "A6",
       pioneira: "Hedy Lamarr",
       periodo: "1914 a 2000 · Áustria e Estados Unidos",
@@ -112,12 +110,12 @@ CD.conteudo = {
       opcoes: ["Um sistema de salto de frequência", "O primeiro computador pessoal", "A câmera de cinema", "Uma linguagem de programação"],
       correta: 0,
       dica: "Procurem o que foi patenteado em 1942.",
-      fragmento: "DE",
-      proxima: "C5"
+      fragmento: "DE"
     },
     {
       id: "h6z1",
       rota: "coral",
+      ordem: 2,
       coordenada: "C5",
       pioneira: "Radia Perlman",
       periodo: "Nascida em 1951 · Estados Unidos",
@@ -128,12 +126,12 @@ CD.conteudo = {
       opcoes: ["Vírus em computadores", "Falta de energia", "Dados circulando em loop", "Senhas fracas"],
       correta: 2,
       dica: "Leiam o que o protocolo Spanning Tree evita.",
-      fragmento: "LA",
-      proxima: "E6"
+      fragmento: "LA"
     },
     {
       id: "v3n5",
       rota: "coral",
+      ordem: 3,
       coordenada: "E6",
       pioneira: "Nina da Hora",
       periodo: "Brasil · referência contemporânea",
@@ -144,8 +142,7 @@ CD.conteudo = {
       opcoes: ["Ética em inteligência artificial", "Construção de foguetes", "Criação de fontes tipográficas", "Fabricação de chips"],
       correta: 0,
       dica: "A resposta está logo no começo do registro.",
-      fragmento: "S",
-      proxima: null
+      fragmento: "S"
     }
   ],
 

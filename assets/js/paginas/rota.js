@@ -1,4 +1,4 @@
-(function () {
+CD.aoCarregar(function () {
   const { $, esc, param } = CD.util;
   const { rotas } = CD.conteudo;
 
@@ -73,4 +73,4 @@
   }
 
   desenhar();
-})();
+});

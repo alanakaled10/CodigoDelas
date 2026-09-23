@@ -9,6 +9,10 @@
         "pontos": { ".validate": "newData.isNumber()" }
       }
     },
+    "conteudo": {
+      ".read": true,
+      ".write": "auth != null"
+    },
     "cronometro": {
       ".read": true,
       ".write": "auth != null"

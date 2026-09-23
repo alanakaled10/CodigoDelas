@@ -1,4 +1,4 @@
-(function () {
+CD.aoCarregar(function () {
   const { $, esc, urlDe } = CD.util;
   const { rotas, estacoes, final, codigoFinal, missao } = CD.conteudo;
 
@@ -123,4 +123,4 @@
   });
 
   $("#imprimir").addEventListener("click", () => window.print());
-})();
+});
