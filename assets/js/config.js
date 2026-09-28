@@ -27,7 +27,7 @@ CD.config = {
   // Endereço público do site, usado nos QR Codes da versão impressa.
   // Deixe vazio para usar o endereço de onde a página foi aberta.
   // Exemplo: "https://codigo-delas.vercel.app/"
-  urlSite: "",
+  urlSite: "https://codigo-delas.vercel.app/",
 
   // Link com as informações oficiais dos cursos, exibido no encerramento.
   urlCursos: "https://www.up.edu.br/"
