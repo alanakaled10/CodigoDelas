@@ -35,6 +35,12 @@ sozinhos a partir da ordem das estações e dos fragmentos. As palavras atuais a
 
 ## Competição
 
+**Pontos automáticos:** ao abrir a rota, a equipe escolhe o próprio nome na lista de grupos
+cadastrados no painel. A partir daí, cada pergunta acertada soma `pontosPorAcerto` (padrão: 10)
+no ranking sozinha. Cada estação conta uma única vez por equipe, e acertos feitos sem internet
+ou antes de escolher a equipe são enviados depois, automaticamente. O painel mostra, em cada
+grupo, quanto veio dos acertos e quanto foi dado pelas admins.
+
 Cada rota tem a própria palavra-chave, formada pelos fragmentos das suas estações. A equipe
 digita a palavra da própria rota na página final e vê a tela de "Missão concluída" com o tempo.
 A monitora então clica em **Registrar chegada** no grupo, na aba Oficina do painel:
@@ -90,6 +96,7 @@ Firebase (gratuito para esse volume):
 2. Em **Build > Realtime Database**, clique em **Criar banco de dados** e comece no modo bloqueado.
 3. Na aba **Regras** do banco, cole o conteúdo de `database.rules.json` e publique.
    Assim qualquer pessoa pode ver o ranking e as perguntas, mas só admins logadas podem alterar.
+   Os celulares só conseguem registrar acertos: um por estação, para uma equipe que exista.
 4. Em **Build > Authentication**, ative o provedor **E-mail/senha** e, na aba **Usuários**,
    crie uma conta para cada admin.
 5. Em **Configurações do projeto > Seus apps**, adicione um app **Web** (`</>`) e copie os

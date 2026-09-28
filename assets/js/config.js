@@ -21,6 +21,9 @@ CD.config = {
   // Senha do painel admin no MODO LOCAL (no modo Firebase o login é por e-mail e senha).
   pinAdminLocal: "delas2026",
 
+  // Pontos somados automaticamente a cada pergunta acertada pela equipe.
+  pontosPorAcerto: 10,
+
   // Pontos extras dados ao registrar a chegada no painel: 1º, 2º, 3º lugar da sessão.
   // As demais equipes que concluírem ganham o último valor da lista.
   bonusChegada: [30, 20, 10],

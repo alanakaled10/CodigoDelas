@@ -1,5 +1,5 @@
 /*
- * Camada de dados: grupos, pontuações, cronômetro e perguntas criadas pelas admins.
+ * Camada de dados: grupos, pontuações, acertos, cronômetro e perguntas criadas pelas admins.
  *
  * Modo Firebase: usa o Realtime Database e sincroniza todos os aparelhos.
  * Modo local: usa o localStorage e sincroniza apenas as abas do mesmo navegador.
@@ -12,6 +12,7 @@ window.CD = window.CD || {};
   const CHAVE_CRONOMETRO = "cd:cronometro";
   const CHAVE_ADMIN = "cd:admin";
   const CHAVE_CONTEUDO = "cd:conteudo";
+  const CHAVE_ACERTOS = "cd:acertos";
 
   const cfg = CD.config.firebase || {};
   const usarFirebase = Boolean(cfg.apiKey && cfg.databaseURL);
@@ -43,7 +44,7 @@ window.CD = window.CD || {};
 
   /* ---------------- Modo local ---------------- */
   function criarLocal() {
-    const ouvintes = { grupos: [], cronometro: [], auth: [], conteudo: [] };
+    const ouvintes = { grupos: [], cronometro: [], auth: [], conteudo: [], acertos: [] };
 
     function ler(chave, padrao) {
       try { return JSON.parse(localStorage.getItem(chave)) || padrao; } catch (e) { return padrao; }
@@ -56,6 +57,7 @@ window.CD = window.CD || {};
       if (chave === CHAVE_GRUPOS) ouvintes.grupos.forEach((cb) => cb(listaDeGrupos(ler(CHAVE_GRUPOS, {}))));
       if (chave === CHAVE_CRONOMETRO) ouvintes.cronometro.forEach((cb) => cb(ler(CHAVE_CRONOMETRO, cronometroPadrao())));
       if (chave === CHAVE_CONTEUDO) ouvintes.conteudo.forEach((cb) => cb(ler(CHAVE_CONTEUDO, null)));
+      if (chave === CHAVE_ACERTOS) ouvintes.acertos.forEach((cb) => cb(ler(CHAVE_ACERTOS, {})));
     }
     // Outras abas do mesmo navegador recebem o evento "storage".
     window.addEventListener("storage", (e) => avisar(e.key));
@@ -110,8 +112,24 @@ window.CD = window.CD || {};
         const grupos = ler(CHAVE_GRUPOS, {});
         delete grupos[id];
         gravar(CHAVE_GRUPOS, grupos);
+        const acertos = ler(CHAVE_ACERTOS, {});
+        delete acertos[id];
+        gravar(CHAVE_ACERTOS, acertos);
       },
-      async limparGrupos() { gravar(CHAVE_GRUPOS, {}); },
+      async limparGrupos() {
+        gravar(CHAVE_GRUPOS, {});
+        gravar(CHAVE_ACERTOS, {});
+      },
+
+      // Acertos registrados pelos celulares: { grupoId: { estacaoId: horário } }.
+      onAcertos: (cb) => inscrever(ouvintes.acertos, cb, () => ler(CHAVE_ACERTOS, {})),
+      async registrarAcerto(grupoId, estacaoId) {
+        const acertos = ler(CHAVE_ACERTOS, {});
+        acertos[grupoId] = acertos[grupoId] || {};
+        if (acertos[grupoId][estacaoId]) return;
+        acertos[grupoId][estacaoId] = Date.now();
+        gravar(CHAVE_ACERTOS, acertos);
+      },
       async salvarCronometro(estado) { gravar(CHAVE_CRONOMETRO, estado); },
 
       // Estações criadas pelas admins. null significa "usar o conteúdo padrão".
@@ -195,8 +213,24 @@ window.CD = window.CD || {};
         await pronto;
         await db.ref("grupos/" + id).update({ ...campos, atualizadoEm: firebase.database.ServerValue.TIMESTAMP });
       },
-      async removerGrupo(id) { await pronto; await db.ref("grupos/" + id).remove(); },
-      async limparGrupos() { await pronto; await db.ref("grupos").remove(); },
+      async removerGrupo(id) {
+        await pronto;
+        await db.ref().update({ ["grupos/" + id]: null, ["acertos/" + id]: null });
+      },
+      async limparGrupos() { await pronto; await db.ref().update({ grupos: null, acertos: null }); },
+
+      // Acertos registrados pelos celulares: { grupoId: { estacaoId: horário } }.
+      onAcertos: (cb) => depois(() => {
+        const ref = db.ref("acertos");
+        const h = ref.on("value", (s) => cb(s.val() || {}));
+        return () => ref.off("value", h);
+      }),
+      // A transação só grava se a estação ainda não foi contada para o grupo.
+      async registrarAcerto(grupoId, estacaoId) {
+        await pronto;
+        await db.ref(`acertos/${grupoId}/${estacaoId}`)
+          .transaction((atual) => (atual === null ? firebase.database.ServerValue.TIMESTAMP : undefined));
+      },
       async salvarCronometro(estado) { await pronto; await db.ref("cronometro").set(estado); },
 
       // Estações criadas pelas admins. null significa "usar o conteúdo padrão".

@@ -9,6 +9,16 @@
         "pontos": { ".validate": "newData.isNumber()" }
       }
     },
+    "acertos": {
+      ".read": true,
+      ".write": "auth != null",
+      "$grupo": {
+        "$estacao": {
+          ".write": "auth != null || (!data.exists() && root.child('grupos').child($grupo).exists())",
+          ".validate": "newData.isNumber() && newData.val() <= now && $estacao.matches(/^[a-z0-9]{2,12}$/)"
+        }
+      }
+    },
     "conteudo": {
       ".read": true,
       ".write": "auth != null"

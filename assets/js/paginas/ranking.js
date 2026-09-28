@@ -10,7 +10,9 @@
   let cronometro = null;
   const pontosAnteriores = {};
 
+  let acertos = {};
   CD.store.onGrupos((lista) => { grupos = lista; desenharFiltros(); desenharRanking(); });
+  CD.store.onAcertos((a) => { acertos = a; desenharRanking(); });
   CD.store.onCronometro((c) => { cronometro = c; desenharRelogio(); });
   setInterval(desenharRelogio, 200);
 
@@ -55,12 +57,13 @@
   // Mais pontos primeiro; no empate, quem chegou antes ao tesouro fica na frente.
   function momentoChegada(g) { return g.chegada ? g.chegada.em : Number.MAX_SAFE_INTEGER; }
   function comparar(a, b) {
-    return (b.pontos || 0) - (a.pontos || 0) || momentoChegada(a) - momentoChegada(b);
+    return b.placar.total - a.placar.total || momentoChegada(a) - momentoChegada(b);
   }
 
   function desenharRanking() {
     const alvo = $("#ranking");
     const lista = grupos
+      .map((g) => ({ ...g, placar: CD.pontuacao(g, acertos) }))
       .filter((g) => filtro === "todas" || g.sessao === filtro)
       .sort((a, b) => comparar(a, b) || (a.criadoEm || 0) - (b.criadoEm || 0));
 
@@ -69,28 +72,29 @@
       return;
     }
 
-    const maximo = Math.max(1, ...lista.map((g) => g.pontos || 0));
+    const maximo = Math.max(1, ...lista.map((g) => g.placar.total));
     let posicao = 0;
 
     alvo.innerHTML = lista.map((g, i) => {
       // Empates de verdade (mesmos pontos e mesma chegada) dividem a posição.
       if (i === 0 || comparar(lista[i - 1], g) !== 0) posicao = i + 1;
       const rota = rotas[g.rota];
-      const mudou = pontosAnteriores[g.id] !== undefined && pontosAnteriores[g.id] !== g.pontos;
-      pontosAnteriores[g.id] = g.pontos;
+      const mudou = pontosAnteriores[g.id] !== undefined && pontosAnteriores[g.id] !== g.placar.total;
+      pontosAnteriores[g.id] = g.placar.total;
       return `
         <li class="ranking__item ${rota ? "tema-" + g.rota : ""} ${mudou ? "ranking__item--mudou" : ""}"
-            style="--largura: ${Math.round(((g.pontos || 0) / maximo) * 100)}%">
+            style="--largura: ${Math.round((g.placar.total / maximo) * 100)}%">
           <div class="ranking__pos">${posicao}º</div>
           <div>
             <div class="ranking__nome">${esc(g.nome)}</div>
             <div class="ranking__info">
               ${rota ? `<span class="pilula-rota"><span aria-hidden="true">${rota.simbolo}</span>${esc(rota.nome)}</span>` : ""}
               ${g.sessao ? `<span>${esc(g.sessao)}</span>` : ""}
+              ${g.placar.acertos ? `<span>✔ ${g.placar.acertos} ${g.placar.acertos === 1 ? "acerto" : "acertos"}</span>` : ""}
               ${g.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.chegada))}</span>` : ""}
             </div>
           </div>
-          <div class="ranking__pontos">${g.pontos || 0}<small>pts</small></div>
+          <div class="ranking__pontos">${g.placar.total}<small>pts</small></div>
         </li>`;
     }).join("");
   }

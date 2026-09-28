@@ -84,6 +84,7 @@ window.CD = window.CD || {};
         p.rota = rota;
         p.fragmentos = {};
         p.concluida = null;
+        p.grupo = null;
       }
       CD.jogo.salvarProgresso(p);
     },
@@ -93,6 +94,28 @@ window.CD = window.CD || {};
       p.rota = p.rota || estacao.rota;
       p.fragmentos[estacao.id] = estacao.fragmento;
       CD.jogo.salvarProgresso(p);
+    },
+
+    // Equipe escolhida neste celular para somar os pontos automaticamente.
+    definirGrupo(grupo) {
+      const p = CD.jogo.progresso();
+      p.grupo = grupo ? { id: grupo.id, nome: grupo.nome } : null;
+      p.semGrupo = !grupo;
+      CD.jogo.salvarProgresso(p);
+      if (grupo) CD.jogo.sincronizarAcertos();
+    },
+
+    // Envia ao banco todos os acertos deste celular. Pode ser chamado várias vezes:
+    // cada estação só é contada uma vez por equipe, e o que falhar sem internet vai na próxima.
+    async sincronizarAcertos() {
+      const p = CD.jogo.progresso();
+      if (!p.grupo || !CD.store || !CD.store.registrarAcerto) return false;
+      try {
+        await Promise.all(Object.keys(p.fragmentos).map((id) => CD.store.registrarAcerto(p.grupo.id, id)));
+        return true;
+      } catch (e) {
+        return false;
+      }
     },
 
     reiniciar() {
@@ -194,6 +217,13 @@ window.CD = window.CD || {};
     t.textContent = mensagem;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2200);
+  };
+
+  // Pontuação total de um grupo: pontos das admins + acertos registrados pelos celulares.
+  CD.pontuacao = function (grupo, acertos) {
+    const n = Object.keys((acertos || {})[grupo.id] || {}).length;
+    const porAcerto = CD.config.pontosPorAcerto || 0;
+    return { acertos: n, automaticos: n * porAcerto, manuais: grupo.pontos || 0, total: (grupo.pontos || 0) + n * porAcerto };
   };
 
   // Texto da chegada de um grupo, usado no ranking e no painel.

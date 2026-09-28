@@ -66,7 +66,8 @@ CD.aoCarregar(function () {
       if (i === estacao.correta) {
         botao.classList.add("opcao--certa");
         CD.jogo.registrarFragmento(estacao);
-        setTimeout(desenharSucesso, 500);
+        CD.jogo.sincronizarAcertos();
+        setTimeout(() => desenharSucesso(true), 500);
         return;
       }
       erros++;
@@ -78,13 +79,23 @@ CD.aoCarregar(function () {
     });
   }
 
-  function desenharSucesso() {
+  function avisoPontos() {
+    const grupo = CD.jogo.progresso().grupo;
+    const pontos = CD.config.pontosPorAcerto || 0;
+    if (!pontos) return "";
+    if (grupo) return `<div class="pontos-ganhos">+${pontos} pontos para ${esc(grupo.nome)}</div>`;
+    return `<p class="aviso aviso--dica" style="margin: 0 0 16px">Este acerto ainda não contou pontos.
+      <a href="rota.html?r=${estacao.rota}">Escolham a equipe</a> e ele será somado automaticamente.</p>`;
+  }
+
+  function desenharSucesso(acabouDeAcertar) {
     const ultima = !estacao.proxima;
     alvo.innerHTML = `
       <section class="cartao sucesso">
         ${cabecalho()}
         <span class="rotulo">Fragmento recuperado</span>
         <div class="sucesso__fragmento">${esc(estacao.fragmento)}</div>
+        ${acabouDeAcertar ? avisoPontos() : ""}
         <p>Vocês restauraram o registro de <strong>${esc(estacao.pioneira)}</strong>.</p>
         <div class="slots" style="justify-content: center; margin: 16px 0 24px">${CD.jogo.slotsFragmentos(estacao.rota)}</div>
         ${ultima ? `
@@ -120,6 +131,7 @@ CD.aoCarregar(function () {
     $("#continuar").addEventListener("click", desenharPergunta);
   }
 
+  CD.jogo.sincronizarAcertos();
   const progresso = CD.jogo.progresso();
   if (progresso.fragmentos[estacao.id]) {
     desenharSucesso();

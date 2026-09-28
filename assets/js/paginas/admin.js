@@ -8,6 +8,7 @@
 
   const alvo = $("#conteudo");
   let grupos = [];
+  let acertos = {};
   let cronometro = null;
   let cancelar = [];
 
@@ -184,6 +185,10 @@
       grupos = lista.sort((a, b) => (a.criadoEm || 0) - (b.criadoEm || 0));
       desenharGrupos();
     }));
+    cancelar.push(store.onAcertos((a) => {
+      acertos = a;
+      desenharGrupos();
+    }));
 
     $("#form-grupo").addEventListener("submit", async (ev) => {
       ev.preventDefault();
@@ -269,6 +274,7 @@
     }
     alvoGrupos.innerHTML = grupos.map((g) => {
       const rota = rotas[g.rota];
+      const placar = CD.pontuacao(g, acertos);
       return `
         <div class="grupo-admin ${rota ? "tema-" + g.rota : ""}" data-id="${esc(g.id)}">
           <div class="grupo-admin__topo">
@@ -280,7 +286,10 @@
                 ${g.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.chegada))}</span>` : ""}
               </div>
             </div>
-            <div class="grupo-admin__pontos">${g.pontos || 0} <small style="font-size: 14px; color: var(--texto-suave)">pts</small></div>
+            <div class="grupo-admin__pontos" title="Pontos automáticos + pontos do painel">
+              ${placar.total} <small style="font-size: 14px; color: var(--texto-suave)">pts</small>
+              <div class="grupo-admin__detalhe">${placar.acertos} ${placar.acertos === 1 ? "acerto" : "acertos"} (${placar.automaticos}) + painel (${placar.manuais})</div>
+            </div>
           </div>
           <div class="grupo-admin__acoes">
             ${g.chegada

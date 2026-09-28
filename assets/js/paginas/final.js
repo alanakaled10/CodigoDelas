@@ -7,6 +7,7 @@ CD.aoCarregar(function () {
   const alvo = $("#conteudo");
   let cronometro = null;
   CD.store.onCronometro((c) => { cronometro = c; });
+  CD.jogo.sincronizarAcertos();
 
   function desenharCadeado() {
     const progresso = CD.jogo.progresso();

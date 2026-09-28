@@ -342,6 +342,7 @@ p { margin: 0 0 1em; }
 .grupo-admin__topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .grupo-admin__nome { font-weight: 600; font-size: 19px; }
 .grupo-admin__pontos { font-family: var(--mono); font-weight: 700; font-size: 28px; }
+.grupo-admin__detalhe { font-family: var(--fonte); font-weight: 500; font-size: 12px; color: var(--texto-suave); text-align: right; }
 .grupo-admin__acoes { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .grupo-admin__acoes .entrada { width: 90px; min-height: 40px; }
 
@@ -384,6 +385,15 @@ p { margin: 0 0 1em; }
 .opcao-form { display: flex; align-items: center; gap: 10px; }
 .opcao-form input[type="radio"] { width: 22px; height: 22px; accent-color: var(--sucesso); flex: none; }
 .opcao-form .entrada { flex: 1; }
+
+/* Escolha da equipe */
+.lista-equipes { display: grid; gap: 8px; }
+.equipe-opcao { justify-content: space-between; font-size: 18px; }
+.equipe-opcao small { font-size: 13px; color: var(--texto-suave); font-weight: 500; }
+.equipe-atual { color: var(--texto-suave); font-size: 15px; margin-top: -4px; }
+.equipe-atual strong { color: var(--cor-rota, var(--texto)); }
+.link-botao { appearance: none; background: none; border: 0; padding: 0 0 0 6px; cursor: pointer; font: inherit; color: var(--teal); text-decoration: underline; }
+.pontos-ganhos { display: inline-block; margin: 0 0 16px; padding: 6px 14px; border-radius: 999px; font-weight: 700; color: var(--sucesso); background: rgba(52, 211, 153, .12); border: 1px solid rgba(52, 211, 153, .4); }
 
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
