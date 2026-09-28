@@ -15,6 +15,6 @@ CD.aoCarregar(function () {
       <p style="color: var(--texto-suave); margin: 0">
         Símbolo: ${esc(rota.forma)} · ${rota.estacoes.length} estações · começa na coordenada <strong>${esc(rota.inicio)}</strong>
       </p>
-      <a class="botao botao--${id} botao--bloco" href="rota.html?r=${id}">Seguir a ${esc(rota.nome)}</a>
+      <a class="botao botao--${id} botao--bloco" href="rota.html?r=${id}&inicio=1">Seguir a ${esc(rota.nome)}</a>
     </article>`).join("");
 });

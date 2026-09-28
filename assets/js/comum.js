@@ -66,15 +66,21 @@ window.CD = window.CD || {};
       return CD.conteudo.rotas[rota].estacoes.map((id) => CD.jogo.estacao(id));
     },
 
+    // Progresso da equipe salvo neste celular. Expira depois de um tempo sem uso,
+    // para que a equipe da sessão seguinte comece do zero no mesmo aparelho.
     progresso() {
-      try {
-        return JSON.parse(localStorage.getItem(PROGRESSO)) || { rota: null, fragmentos: {} };
-      } catch (e) {
-        return { rota: null, fragmentos: {} };
-      }
+      const vazio = { rota: null, fragmentos: {} };
+      let p;
+      try { p = JSON.parse(localStorage.getItem(PROGRESSO)); } catch (e) { p = null; }
+      if (!p) return vazio;
+      const validade = (CD.config.minutosProgresso || 40) * 60000;
+      if (!p.atualizadoEm || Date.now() - p.atualizadoEm > validade) return vazio;
+      p.fragmentos = p.fragmentos || {};
+      return p;
     },
 
     salvarProgresso(p) {
+      p.atualizadoEm = Date.now();
       try { localStorage.setItem(PROGRESSO, JSON.stringify(p)); } catch (e) { /* navegador sem armazenamento */ }
     },
 
@@ -101,6 +107,7 @@ window.CD = window.CD || {};
       const p = CD.jogo.progresso();
       p.grupo = grupo ? { id: grupo.id, nome: grupo.nome } : null;
       p.semGrupo = !grupo;
+      if (grupo) p.dono = { id: grupo.id, nome: grupo.nome };
       CD.jogo.salvarProgresso(p);
       if (grupo) CD.jogo.sincronizarAcertos();
     },

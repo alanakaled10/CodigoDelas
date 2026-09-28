@@ -28,6 +28,10 @@ CD.config = {
   // As demais equipes que concluírem ganham o último valor da lista.
   bonusChegada: [30, 20, 10],
 
+  // Depois de quantos minutos sem uso o progresso salvo no celular é apagado.
+  // Garante que a equipe da sessão seguinte comece do zero no mesmo aparelho.
+  minutosProgresso: 40,
+
   // Duração padrão do cronômetro, em minutos.
   duracaoPadraoMinutos: 15,
 

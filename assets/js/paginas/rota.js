@@ -5,6 +5,9 @@ CD.aoCarregar(function () {
   CD.montarTopo();
 
   let id = param("r");
+  // O QR de início da rota traz "inicio=1": se o celular já tiver uma missão salva,
+  // perguntamos se é a mesma equipe ou uma equipe nova.
+  let perguntarInicio = param("inicio") === "1";
   if (!rotas[id]) id = CD.jogo.progresso().rota;
   const alvo = $("#conteudo");
 
@@ -63,15 +66,61 @@ CD.aoCarregar(function () {
       </div>`;
   }
 
+  function comecarDoZero() {
+    CD.jogo.reiniciar();
+    CD.jogo.escolherRota(id);
+    desenhar();
+  }
+
+  function desenharPerguntaInicio(p, salvos) {
+    alvo.innerHTML = `
+      <span class="rotulo"><span aria-hidden="true">${rota.simbolo}</span> ${esc(rota.nome)}</span>
+      <h1 style="font-size: clamp(34px, 8vw, 52px)">Missão já iniciada neste celular</h1>
+      <div class="cartao" style="margin: 24px 0">
+        <p>Este celular já tem ${salvos} de ${estacoes.length} fragmentos${p.grupo ? ` da equipe <strong>${esc(p.grupo.nome)}</strong>` : ""}${p.concluida ? ", com a missão concluída" : ""}.</p>
+        <div class="lista-equipes">
+          <button class="botao botao--rosa botao--bloco" id="nova-equipe">Somos uma equipe nova: começar do zero</button>
+          <button class="botao botao--fantasma botao--bloco" id="continuar-missao">Continuar a missão${p.grupo ? ` da ${esc(p.grupo.nome)}` : ""}</button>
+        </div>
+      </div>`;
+    const seguir = () => {
+      perguntarInicio = false;
+      history.replaceState(null, "", "rota.html?r=" + id);
+    };
+    $("#nova-equipe").addEventListener("click", () => { seguir(); comecarDoZero(); });
+    $("#continuar-missao").addEventListener("click", () => { seguir(); desenhar(); });
+  }
+
   function desenhar() {
     const p = CD.jogo.progresso();
+    const salvosAgora = estacoes.filter((e) => p.fragmentos[e.id]).length;
+    if (perguntarInicio && (salvosAgora || p.concluida)) {
+      desenharPerguntaInicio(p, salvosAgora);
+      return;
+    }
     if (!p.grupo && !p.semGrupo) {
+      const salvos = estacoes.filter((e) => p.fragmentos[e.id]).length;
       alvo.innerHTML = `
         <span class="rotulo"><span aria-hidden="true">${rota.simbolo}</span> ${esc(rota.nome)}</span>
         <h1 style="font-size: clamp(34px, 8vw, 52px)">A missão vai começar</h1>
+        ${salvos ? `
+          <div class="aviso aviso--dica">
+            Este celular já tem uma missão em andamento nesta rota (${salvos} de ${estacoes.length} fragmentos).
+            Se vocês são uma equipe nova, comecem do zero.
+            <div style="margin-top: 10px"><button class="botao botao--fantasma botao--pequeno" id="zerar-missao">Começar do zero</button></div>
+          </div>` : ""}
         ${escolhaDeEquipe()}`;
+      if (salvos) $("#zerar-missao").addEventListener("click", comecarDoZero);
       alvo.querySelectorAll("[data-grupo]").forEach((b) => b.addEventListener("click", () => {
-        CD.jogo.definirGrupo(grupos.find((g) => g.id === b.dataset.grupo));
+        const grupo = grupos.find((g) => g.id === b.dataset.grupo);
+        const atual = CD.jogo.progresso();
+        const qtd = Object.keys(atual.fragmentos).length;
+        if (qtd && atual.dono && atual.dono.id !== grupo.id &&
+            confirm(`Este celular tem ${qtd} fragmento(s) da equipe ${atual.dono.nome}. Vocês são uma equipe nova?\n\nOK: começar do zero.\nCancelar: manter os fragmentos e passar para ${grupo.nome}.`)) {
+          CD.jogo.reiniciar();
+          CD.jogo.escolherRota(id);
+        }
+        CD.jogo.definirGrupo(grupo);
         desenhar();
       }));
       $("#sem-equipe").addEventListener("click", () => { CD.jogo.definirGrupo(null); desenhar(); });
@@ -118,17 +167,13 @@ CD.aoCarregar(function () {
       </div>
 
       <p style="margin-top: 28px; text-align: center">
-        <button class="botao botao--fantasma botao--pequeno" id="reiniciar">Reiniciar progresso neste aparelho</button>
+        <button class="botao botao--fantasma botao--pequeno" id="reiniciar">Equipe nova neste celular? Começar do zero</button>
       </p>`;
 
     $("#trocar-equipe").addEventListener("click", () => { esquecerGrupo(); desenhar(); });
 
     $("#reiniciar").addEventListener("click", () => {
-      if (confirm("Apagar os fragmentos salvos neste aparelho?")) {
-        CD.jogo.reiniciar();
-        CD.jogo.escolherRota(id);
-        desenhar();
-      }
+      if (confirm("Apagar a missão salva neste celular e começar do zero? Os pontos já registrados no ranking continuam valendo.")) comecarDoZero();
     });
   }
 

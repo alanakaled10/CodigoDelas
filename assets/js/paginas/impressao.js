@@ -27,7 +27,7 @@ CD.aoCarregar(function () {
     { classe: "geral", simbolo: "&lt;/&gt;", titulo: "Código Delas", sub: missao.titulo + " · Comecem por aqui", url: urlDe("index.html"), nota: "Telão ou entrada da sala" },
     ...Object.entries(rotas).map(([id, r]) => ({
       classe: id, simbolo: r.simbolo, titulo: r.nome, sub: "Início da rota · coordenada " + r.inicio,
-      url: urlDe("rota.html?r=" + id), nota: "Entregar à equipe da " + r.nome
+      url: urlDe("rota.html?r=" + id + "&inicio=1"), nota: "Entregar à equipe da " + r.nome
     })),
     ...estacoes.map((e) => ({
       classe: e.rota, simbolo: rotas[e.rota].simbolo, titulo: "Registro perdido",
@@ -106,7 +106,7 @@ CD.aoCarregar(function () {
         <tbody>
           <tr><td>Início</td><td>Todas</td><td class="mono">Telão</td><td>Página inicial</td><td class="url-pequena">${esc(urlDe("index.html"))}</td><td>☐</td></tr>
           ${Object.entries(rotas).map(([id, r]) => `
-            <tr class="${id}"><td>Rota</td><td>${esc(r.nome)}</td><td class="mono">${esc(r.inicio)}</td><td>Início da rota</td><td class="url-pequena">${esc(urlDe("rota.html?r=" + id))}</td><td>☐</td></tr>`).join("")}
+            <tr class="${id}"><td>Rota</td><td>${esc(r.nome)}</td><td class="mono">${esc(r.inicio)}</td><td>Início da rota</td><td class="url-pequena">${esc(urlDe("rota.html?r=" + id + "&inicio=1"))}</td><td>☐</td></tr>`).join("")}
           ${estacoes.map((e) => `
             <tr class="${e.rota}"><td>Estação ${numero(e)}</td><td>${esc(nomeRota(e.rota))}</td><td class="mono forte">${esc(e.coordenada)}</td><td>${esc(e.pioneira)} · fragmento <strong>${esc(e.fragmento)}</strong></td><td class="url-pequena">${esc(urlDe("estacao.html?id=" + e.id))}</td><td>☐</td></tr>`).join("")}
           <tr><td>Final</td><td>Todas</td><td class="mono">Centro</td><td>Tesouro · ${esc(palavras)}</td><td class="url-pequena">${esc(urlDe("final.html"))}</td><td>☐</td></tr>
