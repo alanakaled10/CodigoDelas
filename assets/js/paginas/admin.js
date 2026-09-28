@@ -215,6 +215,13 @@
         if (!valor) return;
         acao(store.alterarPontos(id, valor), (valor > 0 ? "+" : "") + valor + " pontos para " + grupo.nome);
         item.querySelector(".entrada").value = "";
+      } else if (acaoBotao === "chegada") {
+        registrarChegada(grupo);
+      } else if (acaoBotao === "desfazer-chegada") {
+        const bonus = grupo.chegada.bonus || 0;
+        if (confirm(`Desfazer a chegada de "${grupo.nome}"? ${bonus ? `Os ${bonus} pontos de bônus serão retirados. ` : ""}As colocações das outras equipes não mudam.`)) {
+          acao(Promise.all([store.alterarPontos(id, -bonus), store.atualizarGrupo(id, { chegada: null })]), "Chegada desfeita");
+        }
       } else if (acaoBotao === "renomear") {
         const nome = prompt("Novo nome do grupo:", grupo.nome);
         if (nome && nome.trim()) acao(store.atualizarGrupo(id, { nome: nome.trim().slice(0, 40) }));
@@ -222,6 +229,25 @@
         if (confirm(`Remover o grupo "${grupo.nome}"?`)) acao(store.removerGrupo(id), "Grupo removido");
       }
     });
+  }
+
+  // Colocação por sessão: conta quem da mesma sessão já chegou.
+  function registrarChegada(grupo) {
+    const mesmaSessao = (g) => (g.sessao || "") === (grupo.sessao || "");
+    const colocacao = grupos.filter((g) => mesmaSessao(g) && g.chegada).length + 1;
+    const lista = CD.config.bonusChegada || [];
+    const bonus = lista.length ? lista[Math.min(colocacao, lista.length) - 1] : 0;
+    const iniciado = cronometro && (cronometro.rodando || cronometro.acumulado > 0);
+    const chegada = {
+      colocacao,
+      bonus,
+      em: store.agora(),
+      tempo: iniciado ? Math.round(CD.cronometro.decorrido(cronometro)) : null
+    };
+    acao(
+      Promise.all([store.atualizarGrupo(grupo.id, { chegada }), bonus ? store.alterarPontos(grupo.id, bonus) : null]),
+      `${grupo.nome}: ${colocacao}º lugar${bonus ? `, +${bonus} pontos` : ""}`
+    );
   }
 
   function desenharGrupos() {
@@ -251,11 +277,15 @@
               <div class="ranking__info">
                 ${rota ? `<span class="pilula-rota">${rota.simbolo} ${esc(rota.nome)}</span>` : ""}
                 ${g.sessao ? `<span>${esc(g.sessao)}</span>` : ""}
+                ${g.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.chegada))}</span>` : ""}
               </div>
             </div>
             <div class="grupo-admin__pontos">${g.pontos || 0} <small style="font-size: 14px; color: var(--texto-suave)">pts</small></div>
           </div>
           <div class="grupo-admin__acoes">
+            ${g.chegada
+              ? `<button class="botao botao--fantasma botao--pequeno" data-acao="desfazer-chegada">Desfazer chegada</button>`
+              : `<button class="botao botao--rosa botao--pequeno" data-acao="chegada">🏁 Registrar chegada</button>`}
             <button class="botao botao--teal botao--pequeno" data-acao="somar" data-valor="10">+10</button>
             <button class="botao botao--teal botao--pequeno" data-acao="somar" data-valor="5">+5</button>
             <button class="botao botao--fantasma botao--pequeno" data-acao="somar" data-valor="-5">−5</button>

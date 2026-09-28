@@ -30,9 +30,20 @@ No `admin.html`, a aba **Perguntas** permite que as admins:
 - abram a estação como as participantes vão ver (botão **Ver**);
 - voltem às perguntas originais com **Restaurar padrão**.
 
-A próxima coordenada, o início de cada rota e o **código final** são calculados sozinhos a
-partir da ordem das estações e dos fragmentos (Teal primeiro, depois Coral). O código atual
-aparece no topo da aba.
+A próxima coordenada, o início de cada rota e a **palavra-chave de cada rota** são calculados
+sozinhos a partir da ordem das estações e dos fragmentos. As palavras atuais aparecem no topo da aba.
+
+## Competição
+
+Cada rota tem a própria palavra-chave, formada pelos fragmentos das suas estações. A equipe
+digita a palavra da própria rota na página final e vê a tela de "Missão concluída" com o tempo.
+A monitora então clica em **Registrar chegada** no grupo, na aba Oficina do painel:
+
+- a colocação é contada por sessão (1º, 2º...);
+- o bônus é somado aos pontos automaticamente, conforme `bonusChegada` em `config.js`
+  (padrão: 30, 20 e 10 pontos);
+- o ranking mostra a chegada de cada equipe e, no empate de pontos, quem chegou antes fica na frente;
+- **Desfazer chegada** retira o bônus, caso o clique tenha sido por engano.
 
 Cuidados:
 
@@ -52,7 +63,7 @@ Cuidados:
   link dos cursos): `assets/js/config.js`.
 - **Visual**: `assets/css/style.css` (site) e `assets/css/impressao.css` (impressão).
 
-Código final padrão: `LEGADO DELAS` (Teal: LE + GA + DO, Coral: DE + LA + S).
+Palavras-chave padrão: Teal `LEGADO` (LE + GA + DO) e Coral `DELAS` (DE + LA + S).
 
 ## Rodar no computador
 

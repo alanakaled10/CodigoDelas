@@ -1,21 +1,23 @@
 CD.aoCarregar(function () {
-  const { $, esc, normalizar } = CD.util;
-  const { final, rotas, codigoFinal } = CD.conteudo;
+  const { $, esc, normalizar, formatarTempo } = CD.util;
+  const { final, rotas } = CD.conteudo;
 
   CD.montarTopo();
 
   const alvo = $("#conteudo");
-  const progresso = CD.jogo.progresso();
+  let cronometro = null;
+  CD.store.onCronometro((c) => { cronometro = c; });
 
   function desenharCadeado() {
+    const progresso = CD.jogo.progresso();
     const minhaRota = rotas[progresso.rota] ? progresso.rota : null;
     alvo.innerHTML = `
       <span class="rotulo">Arquivo do Tempo · Registro final</span>
       <h1 style="font-size: clamp(34px, 8vw, 52px)">O tesouro está trancado</h1>
       <p style="color: var(--texto-suave)">
-        Cada rota guarda metade do código. Juntem os fragmentos das duas equipes,
-        na ordem <strong style="color: var(--teal)">Teal</strong> e depois
-        <strong style="color: var(--coral)">Coral</strong>, e digitem a senha.
+        Juntem os fragmentos que a equipe recuperou, na ordem das estações, e digitem a
+        palavra-chave da ${minhaRota ? `<strong style="color: var(--${minhaRota})">${esc(rotas[minhaRota].nome)}</strong>` : "sua rota"}.
+        Vence quem chegar primeiro!
       </p>
 
       ${minhaRota ? `
@@ -25,7 +27,7 @@ CD.aoCarregar(function () {
         </div>` : ""}
 
       <form class="cartao" id="form-codigo" style="margin-top: 20px">
-        <label class="rotulo" for="codigo">Código final</label>
+        <label class="rotulo" for="codigo">Palavra-chave</label>
         <input class="campo-codigo" id="codigo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="_ _ _ _ _ _">
         <button class="botao botao--rosa botao--bloco" style="margin-top: 14px">Abrir o tesouro</button>
         <div id="retorno" aria-live="polite"></div>
@@ -33,21 +35,46 @@ CD.aoCarregar(function () {
 
     $("#form-codigo").addEventListener("submit", (ev) => {
       ev.preventDefault();
-      if (normalizar($("#codigo").value) === normalizar(codigoFinal)) {
-        desenharAberto();
-      } else {
-        $("#retorno").innerHTML = `<div class="aviso aviso--erro">O código não abriu o tesouro. Confiram a ordem dos fragmentos das duas rotas.</div>`;
+      const digitado = normalizar($("#codigo").value);
+      const rotaCerta = digitado && Object.keys(rotas).find((r) => normalizar(rotas[r].codigo) === digitado);
+      if (rotaCerta && (!minhaRota || rotaCerta === minhaRota)) {
+        concluir(rotaCerta);
+        return;
       }
+      $("#retorno").innerHTML = `<div class="aviso aviso--erro">${rotaCerta
+        ? "Essa palavra não é da rota de vocês. Usem só os fragmentos que a equipe recuperou."
+        : "A palavra não abriu o tesouro. Confiram a ordem dos fragmentos."}</div>`;
     });
   }
 
-  function desenharAberto() {
+  // Guarda a chegada neste aparelho: recarregar a página mostra a mesma tela.
+  function concluir(rota) {
+    const p = CD.jogo.progresso();
+    const iniciado = cronometro && (cronometro.rodando || cronometro.acumulado > 0);
+    p.rota = rota;
+    p.concluida = {
+      rota,
+      em: Date.now(),
+      tempo: iniciado ? CD.cronometro.decorrido(cronometro) : null
+    };
+    CD.jogo.salvarProgresso(p);
+    desenharAberto(p.concluida);
+  }
+
+  function desenharAberto(chegada) {
     window.scrollTo(0, 0);
+    const rota = rotas[chegada.rota];
+    const hora = new Date(chegada.em).toLocaleTimeString("pt-BR");
     alvo.innerHTML = `
-      <section class="legado-restaurado sucesso">
-        <span class="rotulo">Missão concluída</span>
+      <section class="legado-restaurado sucesso tema-${chegada.rota}">
+        <span class="rotulo">Missão concluída · ${esc(rota.nome)}</span>
         <h2>Legado restaurado</h2>
-        <div class="sucesso__fragmento">${esc(codigoFinal)}</div>
+        <div class="sucesso__fragmento">${esc(rota.codigo)}</div>
+        <div class="cartao chegada">
+          <span class="rotulo">${chegada.tempo !== null ? "Tempo da equipe" : "Horário de chegada"}</span>
+          <div class="chegada__tempo">${chegada.tempo !== null ? formatarTempo(chegada.tempo) : esc(hora)}</div>
+          <p style="margin: 0">Mostrem esta tela à monitora para registrar a chegada no ranking.</p>
+        </div>
       </section>
 
       <article class="cartao" style="margin-top: 24px">
@@ -69,5 +96,6 @@ CD.aoCarregar(function () {
       </div>`;
   }
 
-  desenharCadeado();
+  const salvo = CD.jogo.progresso().concluida;
+  if (salvo && rotas[salvo.rota]) desenharAberto(salvo); else desenharCadeado();
 });

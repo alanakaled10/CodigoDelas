@@ -23,14 +23,15 @@ CD.conteudo = {
   missao: {
     titulo: "O Legado Perdido",
     chamada: "Os nomes desapareceram, mas as ideias continuam presentes em tudo o que usamos. Encontrem as pioneiras, recuperem os fragmentos e reconstruam o Código Delas.",
-    narrativa: "O Arquivo do Tempo perdeu parte dos registros das mulheres que construíram a tecnologia. Sem esses registros, a história ficou incompleta. Duas equipes foram convocadas para seguir as pistas, recuperar os fragmentos do código e restaurar o legado antes que o cronômetro termine.",
+    narrativa: "O Arquivo do Tempo perdeu parte dos registros das mulheres que construíram a tecnologia. Sem esses registros, a história ficou incompleta. Duas equipes foram convocadas para seguir as pistas e recuperar os fragmentos do código. A primeira a restaurar o legado vence a missão.",
     regras: [
       "Cada equipe segue apenas a sua rota: Teal ou Coral.",
       "Escaneiem o QR Code de cada estação para abrir o registro da pioneira.",
       "Leiam o registro com atenção: a resposta está nele.",
       "Cada acerto revela um fragmento do código e a próxima coordenada.",
       "Não é permitido correr, retirar pistas do lugar ou seguir a outra equipe.",
-      "No final, as duas equipes juntam os fragmentos para abrir o tesouro."
+      "Juntem os fragmentos da rota para formar a palavra-chave e abrir o tesouro.",
+      "Vence a equipe que chegar primeiro ao tesouro com a palavra certa."
     ]
   },
 

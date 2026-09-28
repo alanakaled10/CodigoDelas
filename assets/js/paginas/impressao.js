@@ -1,6 +1,7 @@
 CD.aoCarregar(function () {
   const { $, esc, urlDe } = CD.util;
-  const { rotas, estacoes, final, codigoFinal, missao } = CD.conteudo;
+  const { rotas, estacoes, final, missao } = CD.conteudo;
+  const palavras = Object.values(rotas).map((r) => `${r.nome}: ${r.codigo}`).join(" · ");
 
   if (!CD.config.urlSite && !/^https:/.test(location.href)) {
     $("#aviso-url").textContent = "Atenção: os QR Codes estão apontando para um endereço local. " +
@@ -34,7 +35,7 @@ CD.aoCarregar(function () {
       url: urlDe("estacao.html?id=" + e.id),
       nota: `${nomeRota(e.rota)} · estação ${numero(e)} · código ${e.id}`
     })),
-    { classe: "geral", simbolo: "🔒", titulo: "O Tesouro", sub: "Juntem os fragmentos das duas rotas", url: urlDe("final.html"), nota: "Junto ao tesouro final" },
+    { classe: "geral", simbolo: "🔒", titulo: "O Tesouro", sub: "Digitem a palavra-chave da sua rota", url: urlDe("final.html"), nota: "Junto ao tesouro final" },
     { classe: "geral", simbolo: "🏆", titulo: "Ranking ao vivo", sub: "Acompanhem a pontuação", url: urlDe("ranking.html"), nota: "Telão ou mural" }
   ];
 
@@ -87,8 +88,10 @@ CD.aoCarregar(function () {
             </tr>`).join("")}
         </tbody>
       </table>
-      <p>Código final (Teal + Coral):</p>
-      <div class="codigo-final">${esc(codigoFinal)}</div>
+      <p>Palavra-chave desta rota (abre o tesouro):</p>
+      <div class="codigo-final">${esc(r.codigo)}</div>
+      <p style="margin-top: 6mm">Quando a equipe mostrar a tela de "Missão concluída", clique em
+        <strong>Registrar chegada</strong> no painel admin para gravar a colocação e o bônus.</p>
       <p style="margin-top: 8mm">${esc(final.local)}</p>
     </section>`);
 
@@ -106,7 +109,7 @@ CD.aoCarregar(function () {
             <tr class="${id}"><td>Rota</td><td>${esc(r.nome)}</td><td class="mono">${esc(r.inicio)}</td><td>Início da rota</td><td class="url-pequena">${esc(urlDe("rota.html?r=" + id))}</td><td>☐</td></tr>`).join("")}
           ${estacoes.map((e) => `
             <tr class="${e.rota}"><td>Estação ${numero(e)}</td><td>${esc(nomeRota(e.rota))}</td><td class="mono forte">${esc(e.coordenada)}</td><td>${esc(e.pioneira)} · fragmento <strong>${esc(e.fragmento)}</strong></td><td class="url-pequena">${esc(urlDe("estacao.html?id=" + e.id))}</td><td>☐</td></tr>`).join("")}
-          <tr><td>Final</td><td>Todas</td><td class="mono">Centro</td><td>Tesouro · ${esc(codigoFinal)}</td><td class="url-pequena">${esc(urlDe("final.html"))}</td><td>☐</td></tr>
+          <tr><td>Final</td><td>Todas</td><td class="mono">Centro</td><td>Tesouro · ${esc(palavras)}</td><td class="url-pequena">${esc(urlDe("final.html"))}</td><td>☐</td></tr>
           <tr><td>Ranking</td><td>Todas</td><td class="mono">Telão</td><td>Placar ao vivo</td><td class="url-pequena">${esc(urlDe("ranking.html"))}</td><td>☐</td></tr>
         </tbody>
       </table>

@@ -52,11 +52,17 @@
     desenharRanking();
   });
 
+  // Mais pontos primeiro; no empate, quem chegou antes ao tesouro fica na frente.
+  function momentoChegada(g) { return g.chegada ? g.chegada.em : Number.MAX_SAFE_INTEGER; }
+  function comparar(a, b) {
+    return (b.pontos || 0) - (a.pontos || 0) || momentoChegada(a) - momentoChegada(b);
+  }
+
   function desenharRanking() {
     const alvo = $("#ranking");
     const lista = grupos
       .filter((g) => filtro === "todas" || g.sessao === filtro)
-      .sort((a, b) => (b.pontos || 0) - (a.pontos || 0) || (a.criadoEm || 0) - (b.criadoEm || 0));
+      .sort((a, b) => comparar(a, b) || (a.criadoEm || 0) - (b.criadoEm || 0));
 
     if (!lista.length) {
       alvo.innerHTML = `<li class="vazio">Nenhum grupo cadastrado ainda. As equipes aparecem aqui assim que a organização registrar.</li>`;
@@ -65,12 +71,10 @@
 
     const maximo = Math.max(1, ...lista.map((g) => g.pontos || 0));
     let posicao = 0;
-    let anterior = null;
 
     alvo.innerHTML = lista.map((g, i) => {
-      // Empates dividem a mesma posição.
-      if (g.pontos !== anterior) posicao = i + 1;
-      anterior = g.pontos;
+      // Empates de verdade (mesmos pontos e mesma chegada) dividem a posição.
+      if (i === 0 || comparar(lista[i - 1], g) !== 0) posicao = i + 1;
       const rota = rotas[g.rota];
       const mudou = pontosAnteriores[g.id] !== undefined && pontosAnteriores[g.id] !== g.pontos;
       pontosAnteriores[g.id] = g.pontos;
@@ -83,6 +87,7 @@
             <div class="ranking__info">
               ${rota ? `<span class="pilula-rota"><span aria-hidden="true">${rota.simbolo}</span>${esc(rota.nome)}</span>` : ""}
               ${g.sessao ? `<span>${esc(g.sessao)}</span>` : ""}
+              ${g.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.chegada))}</span>` : ""}
             </div>
           </div>
           <div class="ranking__pontos">${g.pontos || 0}<small>pts</small></div>

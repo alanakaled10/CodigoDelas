@@ -38,7 +38,7 @@ CD.aoCarregar(function () {
         ${completa ? `
           <span class="rotulo">Destino final</span>
           <p style="font-size: 20px">${esc(CD.conteudo.final.local)}</p>
-          <p style="color: var(--texto-suave)">Encontrem a outra equipe, juntem os fragmentos e abram o tesouro.</p>
+          <p style="color: var(--texto-suave)">Juntem os fragmentos na ordem, formem a palavra-chave e abram o tesouro. Rápido: vence quem chegar primeiro!</p>
           <a class="botao botao--rosa botao--bloco" href="final.html">Abrir o tesouro</a>
         ` : `
           <span class="rotulo">Próxima coordenada</span>

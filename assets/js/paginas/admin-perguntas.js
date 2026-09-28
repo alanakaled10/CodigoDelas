@@ -32,8 +32,8 @@ CD.adminPerguntas = function (alvo) {
 
   function daRota(r) { return estacoes.filter((e) => e.rota === r); }
 
-  function codigoFinal() {
-    return Object.keys(rotas).map((r) => daRota(r).map((e) => e.fragmento).join("")).filter(Boolean).join(" ");
+  function palavraDaRota(r) {
+    return daRota(r).map((e) => e.fragmento).join("");
   }
 
   function novoId() {
@@ -70,8 +70,12 @@ CD.adminPerguntas = function (alvo) {
 
       <div class="registro__cabecalho">
         <div>
-          <span class="rotulo">Código final atual</span>
-          <div class="codigo-atual">${esc(codigoFinal()) || "nenhum"}</div>
+          <span class="rotulo">Palavras-chave atuais</span>
+          <div class="palavras-atuais">
+            ${Object.entries(rotas).map(([r, rota]) => `
+              <div class="tema-${r}"><small>${rota.simbolo} ${esc(rota.nome)}</small>
+                <span class="codigo-atual" style="color: var(--cor-rota)">${esc(palavraDaRota(r)) || "nenhuma"}</span></div>`).join("")}
+          </div>
         </div>
         <div class="linha">
           <span class="etiqueta" style="color: var(--texto-suave)">${personalizado ? "Perguntas personalizadas" : "Usando as perguntas padrão"}</span>

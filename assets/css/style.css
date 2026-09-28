@@ -75,7 +75,7 @@ p { margin: 0 0 1em; }
   border-bottom: 1px solid rgba(255, 255, 255, .06);
 }
 .topo__barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; }
-.marca { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; color: var(--texto); text-decoration: none; letter-spacing: -.01em; }
+.marca { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; font-weight: 700; color: var(--texto); text-decoration: none; letter-spacing: -.01em; }
 .marca__icone {
   display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
   font-family: var(--mono); font-size: 14px; color: #fff;
@@ -256,6 +256,13 @@ p { margin: 0 0 1em; }
 .nomes-eniac li { padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid var(--borda); }
 .legado-restaurado { text-align: center; }
 .legado-restaurado h2 { font-size: clamp(36px, 8vw, 64px); }
+.chegada { margin: 4px auto 0; max-width: 420px; }
+.chegada__tempo { font-family: var(--mono); font-weight: 700; font-size: clamp(48px, 14vw, 72px); line-height: 1.1; color: var(--ouro); margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+.pilula-chegada {
+  display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px;
+  padding: 2px 10px; border-radius: 999px; color: var(--ouro);
+  background: rgba(255, 209, 102, .1); border: 1px solid rgba(255, 209, 102, .4);
+}
 .legado-restaurado .sucesso__fragmento { font-size: clamp(26px, 7vw, 48px); }
 
 /* ---------- Ranking ---------- */
@@ -346,6 +353,8 @@ p { margin: 0 0 1em; }
   padding: 12px 18px; border-bottom: 3px solid transparent; margin-bottom: -1px;
 }
 .aba[aria-selected="true"] { color: var(--texto); border-bottom-color: var(--rosa); }
+.palavras-atuais { display: flex; gap: 28px; flex-wrap: wrap; }
+.palavras-atuais small { display: block; color: var(--texto-suave); font-size: 13px; }
 .codigo-atual { font-family: var(--mono); font-weight: 700; font-size: 28px; letter-spacing: .1em; color: var(--rosa); }
 .grade-rotas { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin-top: 16px; }
 .lista-estacoes { display: grid; gap: 10px; }

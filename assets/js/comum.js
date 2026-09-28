@@ -43,12 +43,11 @@ window.CD = window.CD || {};
 
   CD.jogo = {
     // Organiza as estações por rota e calcula o que depende da ordem:
-    // início de cada rota, próxima coordenada de cada estação e código final.
+    // início de cada rota, próxima coordenada de cada estação e a palavra-chave da rota.
     aplicarEstacoes(lista) {
       const c = CD.conteudo;
       const validas = (lista || []).filter((e) => e && e.id && c.rotas[e.rota]);
       c.estacoes = validas.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-      const partes = [];
       Object.entries(c.rotas).forEach(([id, rota]) => {
         const daRota = c.estacoes.filter((e) => e.rota === id);
         daRota.forEach((e, i) => {
@@ -57,9 +56,8 @@ window.CD = window.CD || {};
         });
         rota.estacoes = daRota.map((e) => e.id);
         rota.inicio = daRota[0] ? daRota[0].coordenada : "?";
-        partes.push(daRota.map((e) => e.fragmento).join(""));
+        rota.codigo = daRota.map((e) => e.fragmento).join("");
       });
-      c.codigoFinal = partes.filter(Boolean).join(" ");
     },
 
     estacao(id) { return CD.conteudo.estacoes.find((e) => e.id === id); },
@@ -85,6 +83,7 @@ window.CD = window.CD || {};
       if (p.rota !== rota) {
         p.rota = rota;
         p.fragmentos = {};
+        p.concluida = null;
       }
       CD.jogo.salvarProgresso(p);
     },
@@ -195,6 +194,15 @@ window.CD = window.CD || {};
     t.textContent = mensagem;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2200);
+  };
+
+  // Texto da chegada de um grupo, usado no ranking e no painel.
+  CD.textoChegada = function (chegada) {
+    if (!chegada) return "";
+    const quando = chegada.tempo !== null && chegada.tempo !== undefined
+      ? CD.util.formatarTempo(chegada.tempo)
+      : new Date(chegada.em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return `🏁 ${chegada.colocacao}º a chegar · ${quando}`;
   };
 
   CD.cronometro = {
