@@ -112,15 +112,20 @@ window.CD = window.CD || {};
       if (grupo) CD.jogo.sincronizarAcertos();
     },
 
-    // Envia ao banco todos os acertos deste celular. Pode ser chamado várias vezes:
-    // cada estação só é contada uma vez por equipe, e o que falhar sem internet vai na próxima.
+    // Envia ao banco todos os acertos deste celular e a chegada ao tesouro, se houver.
+    // Pode ser chamado várias vezes: cada estação só é contada uma vez por equipe,
+    // e o que falhar sem internet vai na próxima.
     async sincronizarAcertos() {
       const p = CD.jogo.progresso();
       if (!p.grupo || !CD.store || !CD.store.registrarAcerto) return false;
       try {
         await Promise.all(Object.keys(p.fragmentos).map((id) => CD.store.registrarAcerto(p.grupo.id, id)));
+        if (p.concluida && CD.store.registrarChegada) {
+          await CD.store.registrarChegada(p.grupo.id, { rota: p.concluida.rota, tempo: p.concluida.tempo });
+        }
         return true;
       } catch (e) {
+        console.warn("Não foi possível registrar no ranking:", e);
         return false;
       }
     },
@@ -226,11 +231,45 @@ window.CD = window.CD || {};
     setTimeout(() => t.remove(), 2200);
   };
 
-  // Pontuação total de um grupo: pontos das admins + acertos registrados pelos celulares.
-  CD.pontuacao = function (grupo, acertos) {
-    const n = Object.keys((acertos || {})[grupo.id] || {}).length;
+  // Placar de cada grupo: pontos das admins + acertos registrados pelos celulares + bônus de chegada.
+  // Cada acerto vale sempre os pontos inteiros (pontosPorAcerto), mesmo que a equipe tenha errado antes.
+  // A colocação na chegada é contada por sessão, pela ordem em que as equipes abriram o tesouro.
+  CD.placares = function (grupos, acertos, chegadas) {
     const porAcerto = CD.config.pontosPorAcerto || 0;
-    return { acertos: n, automaticos: n * porAcerto, manuais: grupo.pontos || 0, total: (grupo.pontos || 0) + n * porAcerto };
+    const bonusLista = CD.config.bonusChegada || [];
+    const colocacoes = {};
+    const porSessao = {};
+    grupos.forEach((g) => {
+      const c = (chegadas || {})[g.id];
+      if (!c) return;
+      const sessao = g.sessao || "";
+      (porSessao[sessao] = porSessao[sessao] || []).push({ id: g.id, ...c });
+    });
+    Object.values(porSessao).forEach((lista) => {
+      lista.sort((a, b) => (a.em || 0) - (b.em || 0)).forEach((c, i) => {
+        const colocacao = i + 1;
+        const bonus = bonusLista.length ? bonusLista[Math.min(colocacao, bonusLista.length) - 1] : 0;
+        colocacoes[c.id] = { ...c, colocacao, bonus };
+      });
+    });
+
+    const resultado = {};
+    grupos.forEach((g) => {
+      const n = Object.keys((acertos || {})[g.id] || {}).length;
+      // g.chegada: registro antigo, gravado no próprio grupo (o bônus já está em g.pontos).
+      const chegada = colocacoes[g.id] || g.chegada || null;
+      const bonus = colocacoes[g.id] ? colocacoes[g.id].bonus : 0;
+      const manuais = g.pontos || 0;
+      resultado[g.id] = {
+        acertos: n,
+        automaticos: n * porAcerto,
+        manuais,
+        bonus,
+        chegada,
+        total: manuais + n * porAcerto + bonus
+      };
+    });
+    return resultado;
   };
 
   // Texto da chegada de um grupo, usado no ranking e no painel.

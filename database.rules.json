@@ -19,6 +19,18 @@
         }
       }
     },
+    "chegadas": {
+      ".read": true,
+      ".write": "auth != null",
+      "$grupo": {
+        ".write": "auth != null || (!data.exists() && root.child('grupos').child($grupo).exists())",
+        ".validate": "newData.hasChildren(['em'])",
+        "em": { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "rota": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "tempo": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "$outro": { ".validate": false }
+      }
+    },
     "conteudo": {
       ".read": true,
       ".write": "auth != null"

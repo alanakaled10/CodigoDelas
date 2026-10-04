@@ -66,8 +66,11 @@ CD.aoCarregar(function () {
       if (i === estacao.correta) {
         botao.classList.add("opcao--certa");
         CD.jogo.registrarFragmento(estacao);
-        CD.jogo.sincronizarAcertos();
-        setTimeout(() => desenharSucesso(true), 500);
+        const envio = CD.jogo.sincronizarAcertos();
+        setTimeout(() => {
+          desenharSucesso(true);
+          envio.then(mostrarEnvio);
+        }, 500);
         return;
       }
       erros++;
@@ -83,9 +86,24 @@ CD.aoCarregar(function () {
     const grupo = CD.jogo.progresso().grupo;
     const pontos = CD.config.pontosPorAcerto || 0;
     if (!pontos) return "";
-    if (grupo) return `<div class="pontos-ganhos">+${pontos} pontos para ${esc(grupo.nome)}</div>`;
+    if (grupo) return `<div id="status-pontos"><div class="pontos-ganhos">+${pontos} pontos para ${esc(grupo.nome)}</div></div>`;
     return `<p class="aviso aviso--dica" style="margin: 0 0 16px">Este acerto ainda não contou pontos.
       <a href="rota.html?r=${estacao.rota}">Escolham a equipe</a> e ele será somado automaticamente.</p>`;
+  }
+
+  // Se o acerto não chegou ao banco (sem internet, por exemplo), avisa e oferece tentar de novo.
+  function mostrarEnvio(ok) {
+    const el = $("#status-pontos");
+    if (!el || ok) return;
+    el.innerHTML = `<div class="aviso aviso--erro" style="margin: 0 0 16px">Os pontos ainda não foram enviados ao ranking.
+      Eles serão enviados na próxima página que abrirem com internet.
+      <div style="margin-top: 10px"><button class="botao botao--fantasma botao--pequeno" id="reenviar">Tentar de novo</button></div></div>`;
+    $("#reenviar").addEventListener("click", () => {
+      CD.jogo.sincronizarAcertos().then((certo) => {
+        if (certo) el.innerHTML = `<div class="pontos-ganhos">+${CD.config.pontosPorAcerto} pontos enviados</div>`;
+        else mostrarEnvio(false);
+      });
+    });
   }
 
   function desenharSucesso(acabouDeAcertar) {

@@ -9,6 +9,7 @@
   const alvo = $("#conteudo");
   let grupos = [];
   let acertos = {};
+  let chegadas = {};
   let cronometro = null;
   let cancelar = [];
 
@@ -189,6 +190,10 @@
       acertos = a;
       desenharGrupos();
     }));
+    cancelar.push(store.onChegadas((c) => {
+      chegadas = c;
+      desenharGrupos();
+    }));
 
     $("#form-grupo").addEventListener("submit", async (ev) => {
       ev.preventDefault();
@@ -223,10 +228,7 @@
       } else if (acaoBotao === "chegada") {
         registrarChegada(grupo);
       } else if (acaoBotao === "desfazer-chegada") {
-        const bonus = grupo.chegada.bonus || 0;
-        if (confirm(`Desfazer a chegada de "${grupo.nome}"? ${bonus ? `Os ${bonus} pontos de bônus serão retirados. ` : ""}As colocações das outras equipes não mudam.`)) {
-          acao(Promise.all([store.alterarPontos(id, -bonus), store.atualizarGrupo(id, { chegada: null })]), "Chegada desfeita");
-        }
+        desfazerChegada(grupo);
       } else if (acaoBotao === "renomear") {
         const nome = prompt("Novo nome do grupo:", grupo.nome);
         if (nome && nome.trim()) acao(store.atualizarGrupo(id, { nome: nome.trim().slice(0, 40) }));
@@ -236,23 +238,24 @@
     });
   }
 
-  // Colocação por sessão: conta quem da mesma sessão já chegou.
+  // Registro manual, para quando o celular da equipe não conseguiu registrar sozinho.
+  // A colocação e o bônus são calculados pela ordem de chegada dentro da sessão.
   function registrarChegada(grupo) {
-    const mesmaSessao = (g) => (g.sessao || "") === (grupo.sessao || "");
-    const colocacao = grupos.filter((g) => mesmaSessao(g) && g.chegada).length + 1;
-    const lista = CD.config.bonusChegada || [];
-    const bonus = lista.length ? lista[Math.min(colocacao, lista.length) - 1] : 0;
     const iniciado = cronometro && (cronometro.rodando || cronometro.acumulado > 0);
-    const chegada = {
-      colocacao,
-      bonus,
-      em: store.agora(),
-      tempo: iniciado ? Math.round(CD.cronometro.decorrido(cronometro)) : null
-    };
-    acao(
-      Promise.all([store.atualizarGrupo(grupo.id, { chegada }), bonus ? store.alterarPontos(grupo.id, bonus) : null]),
-      `${grupo.nome}: ${colocacao}º lugar${bonus ? `, +${bonus} pontos` : ""}`
-    );
+    const tempo = iniciado ? CD.cronometro.decorrido(cronometro) : null;
+    acao(store.registrarChegada(grupo.id, { rota: grupo.rota, tempo }), `Chegada de ${grupo.nome} registrada`);
+  }
+
+  function desfazerChegada(grupo) {
+    const placar = CD.placares(grupos, acertos, chegadas)[grupo.id];
+    const antigo = !chegadas[grupo.id] && grupo.chegada;
+    const bonus = antigo ? grupo.chegada.bonus || 0 : placar.bonus;
+    if (!confirm(`Desfazer a chegada de "${grupo.nome}"? ${bonus ? `Os ${bonus} pontos de bônus serão retirados. ` : ""}As equipes que chegaram depois sobem uma colocação.`)) return;
+    // Registro antigo: o bônus foi somado direto nos pontos do grupo.
+    const tarefas = [store.removerChegada(grupo.id)];
+    if (grupo.chegada) tarefas.push(store.atualizarGrupo(grupo.id, { chegada: null }));
+    if (antigo && bonus) tarefas.push(store.alterarPontos(grupo.id, -bonus));
+    acao(Promise.all(tarefas), "Chegada desfeita");
   }
 
   function desenharGrupos() {
@@ -272,9 +275,10 @@
       alvoGrupos.innerHTML = `<div class="vazio">Nenhum grupo cadastrado.</div>`;
       return;
     }
+    const placares = CD.placares(grupos, acertos, chegadas);
     alvoGrupos.innerHTML = grupos.map((g) => {
       const rota = rotas[g.rota];
-      const placar = CD.pontuacao(g, acertos);
+      const placar = placares[g.id];
       return `
         <div class="grupo-admin ${rota ? "tema-" + g.rota : ""}" data-id="${esc(g.id)}">
           <div class="grupo-admin__topo">
@@ -283,16 +287,16 @@
               <div class="ranking__info">
                 ${rota ? `<span class="pilula-rota">${rota.simbolo} ${esc(rota.nome)}</span>` : ""}
                 ${g.sessao ? `<span>${esc(g.sessao)}</span>` : ""}
-                ${g.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.chegada))}</span>` : ""}
+                ${placar.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(placar.chegada))}</span>` : ""}
               </div>
             </div>
             <div class="grupo-admin__pontos" title="Pontos automáticos + pontos do painel">
               ${placar.total} <small style="font-size: 14px; color: var(--texto-suave)">pts</small>
-              <div class="grupo-admin__detalhe">${placar.acertos} ${placar.acertos === 1 ? "acerto" : "acertos"} (${placar.automaticos}) + painel (${placar.manuais})</div>
+              <div class="grupo-admin__detalhe">${placar.acertos} ${placar.acertos === 1 ? "acerto" : "acertos"} (${placar.automaticos}) + painel (${placar.manuais})${placar.bonus ? ` + chegada (${placar.bonus})` : ""}</div>
             </div>
           </div>
           <div class="grupo-admin__acoes">
-            ${g.chegada
+            ${placar.chegada
               ? `<button class="botao botao--fantasma botao--pequeno" data-acao="desfazer-chegada">Desfazer chegada</button>`
               : `<button class="botao botao--rosa botao--pequeno" data-acao="chegada">🏁 Registrar chegada</button>`}
             <button class="botao botao--teal botao--pequeno" data-acao="somar" data-valor="10">+10</button>
