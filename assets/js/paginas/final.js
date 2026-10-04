@@ -7,7 +7,6 @@ CD.aoCarregar(function () {
   const alvo = $("#conteudo");
   let cronometro = null;
   CD.store.onCronometro((c) => { cronometro = c; });
-  CD.jogo.sincronizarAcertos();
 
   function desenharCadeado() {
     const progresso = CD.jogo.progresso();
@@ -60,6 +59,37 @@ CD.aoCarregar(function () {
     };
     CD.jogo.salvarProgresso(p);
     desenharAberto(p.concluida);
+    CD.jogo.sincronizarAcertos().then(desenharStatusChegada);
+  }
+
+  // Mostra a colocação registrada no ranking, atualizada em tempo real.
+  let grupos = [];
+  let chegadas = {};
+  let falhou = false;
+  CD.store.onGrupos((lista) => { grupos = lista; desenharStatusChegada(); });
+  CD.store.onChegadas((c) => { chegadas = c; desenharStatusChegada(); });
+
+  function desenharStatusChegada(ok) {
+    if (ok === false) falhou = true;
+    if (ok === true) falhou = false;
+    const el = $("#status-chegada");
+    if (!el) return;
+    const p = CD.jogo.progresso();
+    if (!p.grupo) {
+      el.innerHTML = `<p style="margin: 0">Mostrem esta tela à monitora para registrar a chegada no ranking.</p>`;
+      return;
+    }
+    const placar = CD.placares(grupos, {}, chegadas)[p.grupo.id];
+    if (placar && placar.chegada) {
+      el.innerHTML = `<div class="pontos-ganhos">🏁 ${esc(p.grupo.nome)} chegou em ${placar.chegada.colocacao}º lugar${placar.bonus ? ` · +${placar.bonus} pontos de bônus` : ""}</div>
+        <p style="margin: 0; color: var(--texto-suave)">A chegada já está no ranking.</p>`;
+    } else if (falhou) {
+      el.innerHTML = `<div class="aviso aviso--erro" style="margin: 0">Não conseguimos registrar a chegada agora. Mostrem esta tela à monitora.</div>
+        <button class="botao botao--fantasma botao--pequeno" id="tentar-chegada" style="margin-top: 10px">Tentar de novo</button>`;
+      $("#tentar-chegada").addEventListener("click", () => CD.jogo.sincronizarAcertos().then(desenharStatusChegada));
+    } else {
+      el.innerHTML = `<p style="margin: 0">Registrando a chegada de <strong>${esc(p.grupo.nome)}</strong> no ranking...</p>`;
+    }
   }
 
   function desenharAberto(chegada) {
@@ -74,7 +104,7 @@ CD.aoCarregar(function () {
         <div class="cartao chegada">
           <span class="rotulo">${chegada.tempo !== null ? "Tempo da equipe" : "Horário de chegada"}</span>
           <div class="chegada__tempo">${chegada.tempo !== null ? formatarTempo(chegada.tempo) : esc(hora)}</div>
-          <p style="margin: 0">Mostrem esta tela à monitora para registrar a chegada no ranking.</p>
+          <div id="status-chegada"></div>
         </div>
       </section>
 
@@ -95,8 +125,10 @@ CD.aoCarregar(function () {
         <a class="botao botao--rosa" href="${esc(CD.config.urlCursos)}" target="_blank" rel="noopener">Conhecer os cursos de tecnologia</a>
         <a class="botao botao--fantasma" href="ranking.html">Ver ranking</a>
       </div>`;
+    desenharStatusChegada();
   }
 
   const salvo = CD.jogo.progresso().concluida;
   if (salvo && rotas[salvo.rota]) desenharAberto(salvo); else desenharCadeado();
+  CD.jogo.sincronizarAcertos().then(desenharStatusChegada);
 });

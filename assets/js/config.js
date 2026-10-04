@@ -22,9 +22,11 @@ CD.config = {
   pinAdminLocal: "delas2026",
 
   // Pontos somados automaticamente a cada pergunta acertada pela equipe.
+  // Vale sempre o valor inteiro: errar antes de acertar não tira pontos.
   pontosPorAcerto: 10,
 
-  // Pontos extras dados ao registrar a chegada no painel: 1º, 2º, 3º lugar da sessão.
+  // Pontos extras pela chegada ao tesouro: 1º, 2º, 3º lugar da sessão.
+  // A chegada é registrada sozinha quando a equipe abre o tesouro (ou pelo painel).
   // As demais equipes que concluírem ganham o último valor da lista.
   bonusChegada: [30, 20, 10],
 

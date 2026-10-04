@@ -41,15 +41,20 @@ no ranking sozinha. Cada estação conta uma única vez por equipe, e acertos fe
 ou antes de escolher a equipe são enviados depois, automaticamente. O painel mostra, em cada
 grupo, quanto veio dos acertos e quanto foi dado pelas admins.
 
-Cada rota tem a própria palavra-chave, formada pelos fragmentos das suas estações. A equipe
-digita a palavra da própria rota na página final e vê a tela de "Missão concluída" com o tempo.
-A monitora então clica em **Registrar chegada** no grupo, na aba Oficina do painel:
+Cada acerto vale sempre os pontos inteiros: errar antes de acertar não tira pontos.
 
-- a colocação é contada por sessão (1º, 2º...);
+Cada rota tem a própria palavra-chave, formada pelos fragmentos das suas estações. Quando a
+equipe digita a palavra da própria rota na página final, a chegada é **registrada sozinha**
+no ranking, e o celular mostra a colocação da equipe:
+
+- a colocação é contada por sessão (1º, 2º...), pela ordem em que as equipes abriram o tesouro;
 - o bônus é somado aos pontos automaticamente, conforme `bonusChegada` em `config.js`
   (padrão: 30, 20 e 10 pontos);
 - o ranking mostra a chegada de cada equipe e, no empate de pontos, quem chegou antes fica na frente;
-- **Desfazer chegada** retira o bônus, caso o clique tenha sido por engano.
+- se a equipe jogou sem escolher o nome ou ficou sem internet, a monitora clica em
+  **Registrar chegada** no grupo, na aba Oficina do painel;
+- **Desfazer chegada** retira o bônus, caso tenha sido por engano. As equipes que chegaram
+  depois sobem uma colocação.
 
 Cuidados:
 
@@ -96,7 +101,10 @@ Firebase (gratuito para esse volume):
 2. Em **Build > Realtime Database**, clique em **Criar banco de dados** e comece no modo bloqueado.
 3. Na aba **Regras** do banco, cole o conteúdo de `database.rules.json` e publique.
    Assim qualquer pessoa pode ver o ranking e as perguntas, mas só admins logadas podem alterar.
-   Os celulares só conseguem registrar acertos: um por estação, para uma equipe que exista.
+   Os celulares só conseguem registrar acertos (um por estação) e a chegada (uma vez),
+   sempre para uma equipe que exista.
+   **Sempre que `database.rules.json` mudar, cole e publique de novo.** Com regras antigas,
+   os acertos e as chegadas não são registrados e aparece o erro `PERMISSION_DENIED`.
 4. Em **Build > Authentication**, ative o provedor **E-mail/senha** e, na aba **Usuários**,
    crie uma conta para cada admin.
 5. Em **Configurações do projeto > Seus apps**, adicione um app **Web** (`</>`) e copie os

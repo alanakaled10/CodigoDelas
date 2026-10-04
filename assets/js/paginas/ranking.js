@@ -11,8 +11,10 @@
   const pontosAnteriores = {};
 
   let acertos = {};
+  let chegadas = {};
   CD.store.onGrupos((lista) => { grupos = lista; desenharFiltros(); desenharRanking(); });
   CD.store.onAcertos((a) => { acertos = a; desenharRanking(); });
+  CD.store.onChegadas((c) => { chegadas = c; desenharRanking(); });
   CD.store.onCronometro((c) => { cronometro = c; desenharRelogio(); });
   setInterval(desenharRelogio, 200);
 
@@ -55,15 +57,16 @@
   });
 
   // Mais pontos primeiro; no empate, quem chegou antes ao tesouro fica na frente.
-  function momentoChegada(g) { return g.chegada ? g.chegada.em : Number.MAX_SAFE_INTEGER; }
+  function momentoChegada(g) { return g.placar.chegada ? g.placar.chegada.em : Number.MAX_SAFE_INTEGER; }
   function comparar(a, b) {
     return b.placar.total - a.placar.total || momentoChegada(a) - momentoChegada(b);
   }
 
   function desenharRanking() {
     const alvo = $("#ranking");
+    const placares = CD.placares(grupos, acertos, chegadas);
     const lista = grupos
-      .map((g) => ({ ...g, placar: CD.pontuacao(g, acertos) }))
+      .map((g) => ({ ...g, placar: placares[g.id] }))
       .filter((g) => filtro === "todas" || g.sessao === filtro)
       .sort((a, b) => comparar(a, b) || (a.criadoEm || 0) - (b.criadoEm || 0));
 
@@ -91,7 +94,7 @@
               ${rota ? `<span class="pilula-rota"><span aria-hidden="true">${rota.simbolo}</span>${esc(rota.nome)}</span>` : ""}
               ${g.sessao ? `<span>${esc(g.sessao)}</span>` : ""}
               ${g.placar.acertos ? `<span>✔ ${g.placar.acertos} ${g.placar.acertos === 1 ? "acerto" : "acertos"}</span>` : ""}
-              ${g.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.chegada))}</span>` : ""}
+              ${g.placar.chegada ? `<span class="pilula-chegada">${esc(CD.textoChegada(g.placar.chegada))}</span>` : ""}
             </div>
           </div>
           <div class="ranking__pontos">${g.placar.total}<small>pts</small></div>

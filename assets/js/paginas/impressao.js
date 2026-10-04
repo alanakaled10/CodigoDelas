@@ -90,8 +90,8 @@ CD.aoCarregar(function () {
       </table>
       <p>Palavra-chave desta rota (abre o tesouro):</p>
       <div class="codigo-final">${esc(r.codigo)}</div>
-      <p style="margin-top: 6mm">Quando a equipe mostrar a tela de "Missão concluída", clique em
-        <strong>Registrar chegada</strong> no painel admin para gravar a colocação e o bônus.</p>
+      <p style="margin-top: 6mm">Se a chegada não aparecer no painel, clique em
+        <strong>Registrar chegada</strong> no painel admin. Com a equipe escolhida no celular, a chegada é registrada sozinha.</p>
       <p style="margin-top: 8mm">${esc(final.local)}</p>
     </section>`);
 

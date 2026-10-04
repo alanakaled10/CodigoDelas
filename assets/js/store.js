@@ -13,6 +13,7 @@ window.CD = window.CD || {};
   const CHAVE_ADMIN = "cd:admin";
   const CHAVE_CONTEUDO = "cd:conteudo";
   const CHAVE_ACERTOS = "cd:acertos";
+  const CHAVE_CHEGADAS = "cd:chegadas";
 
   const cfg = CD.config.firebase || {};
   const usarFirebase = Boolean(cfg.apiKey && cfg.databaseURL);
@@ -44,7 +45,7 @@ window.CD = window.CD || {};
 
   /* ---------------- Modo local ---------------- */
   function criarLocal() {
-    const ouvintes = { grupos: [], cronometro: [], auth: [], conteudo: [], acertos: [] };
+    const ouvintes = { grupos: [], cronometro: [], auth: [], conteudo: [], acertos: [], chegadas: [] };
 
     function ler(chave, padrao) {
       try { return JSON.parse(localStorage.getItem(chave)) || padrao; } catch (e) { return padrao; }
@@ -58,6 +59,7 @@ window.CD = window.CD || {};
       if (chave === CHAVE_CRONOMETRO) ouvintes.cronometro.forEach((cb) => cb(ler(CHAVE_CRONOMETRO, cronometroPadrao())));
       if (chave === CHAVE_CONTEUDO) ouvintes.conteudo.forEach((cb) => cb(ler(CHAVE_CONTEUDO, null)));
       if (chave === CHAVE_ACERTOS) ouvintes.acertos.forEach((cb) => cb(ler(CHAVE_ACERTOS, {})));
+      if (chave === CHAVE_CHEGADAS) ouvintes.chegadas.forEach((cb) => cb(ler(CHAVE_CHEGADAS, {})));
     }
     // Outras abas do mesmo navegador recebem o evento "storage".
     window.addEventListener("storage", (e) => avisar(e.key));
@@ -112,13 +114,16 @@ window.CD = window.CD || {};
         const grupos = ler(CHAVE_GRUPOS, {});
         delete grupos[id];
         gravar(CHAVE_GRUPOS, grupos);
-        const acertos = ler(CHAVE_ACERTOS, {});
-        delete acertos[id];
-        gravar(CHAVE_ACERTOS, acertos);
+        [CHAVE_ACERTOS, CHAVE_CHEGADAS].forEach((chave) => {
+          const dados = ler(chave, {});
+          delete dados[id];
+          gravar(chave, dados);
+        });
       },
       async limparGrupos() {
         gravar(CHAVE_GRUPOS, {});
         gravar(CHAVE_ACERTOS, {});
+        gravar(CHAVE_CHEGADAS, {});
       },
 
       // Acertos registrados pelos celulares: { grupoId: { estacaoId: horário } }.
@@ -129,6 +134,20 @@ window.CD = window.CD || {};
         if (acertos[grupoId][estacaoId]) return;
         acertos[grupoId][estacaoId] = Date.now();
         gravar(CHAVE_ACERTOS, acertos);
+      },
+
+      // Chegadas ao tesouro: { grupoId: { em, rota, tempo } }. Só a primeira vale.
+      onChegadas: (cb) => inscrever(ouvintes.chegadas, cb, () => ler(CHAVE_CHEGADAS, {})),
+      async registrarChegada(grupoId, dados) {
+        const chegadas = ler(CHAVE_CHEGADAS, {});
+        if (chegadas[grupoId]) return;
+        chegadas[grupoId] = { ...dados, em: Date.now() };
+        gravar(CHAVE_CHEGADAS, chegadas);
+      },
+      async removerChegada(grupoId) {
+        const chegadas = ler(CHAVE_CHEGADAS, {});
+        delete chegadas[grupoId];
+        gravar(CHAVE_CHEGADAS, chegadas);
       },
       async salvarCronometro(estado) { gravar(CHAVE_CRONOMETRO, estado); },
 
@@ -163,6 +182,15 @@ window.CD = window.CD || {};
         // para que o cronômetro mostre o mesmo tempo em todos os celulares.
         db.ref(".info/serverTimeOffset").on("value", (s) => { diferencaRelogio = s.val() || 0; });
       });
+
+    // Remove caminhos ligados aos grupos. Uma falha aqui não impede a remoção do grupo.
+    async function limparExtras(caminhos) {
+      const falhas = [];
+      for (const caminho of caminhos) {
+        try { await db.ref(caminho).remove(); } catch (e) { falhas.push(caminho); }
+      }
+      if (falhas.length) console.warn("Não foi possível limpar " + falhas.join(", ") + ". Confira as regras do Firebase.");
+    }
 
     function depois(fn) {
       let cancelar = () => {};
@@ -213,11 +241,18 @@ window.CD = window.CD || {};
         await pronto;
         await db.ref("grupos/" + id).update({ ...campos, atualizadoEm: firebase.database.ServerValue.TIMESTAMP });
       },
+      // Apaga o grupo primeiro e depois os acertos e a chegada dele, separadamente:
+      // assim a remoção funciona mesmo que as regras publicadas no Firebase estejam desatualizadas.
       async removerGrupo(id) {
         await pronto;
-        await db.ref().update({ ["grupos/" + id]: null, ["acertos/" + id]: null });
+        await db.ref("grupos/" + id).remove();
+        await limparExtras(["acertos/" + id, "chegadas/" + id]);
       },
-      async limparGrupos() { await pronto; await db.ref().update({ grupos: null, acertos: null }); },
+      async limparGrupos() {
+        await pronto;
+        await db.ref("grupos").remove();
+        await limparExtras(["acertos", "chegadas"]);
+      },
 
       // Acertos registrados pelos celulares: { grupoId: { estacaoId: horário } }.
       onAcertos: (cb) => depois(() => {
@@ -231,6 +266,20 @@ window.CD = window.CD || {};
         await db.ref(`acertos/${grupoId}/${estacaoId}`)
           .transaction((atual) => (atual === null ? firebase.database.ServerValue.TIMESTAMP : undefined));
       },
+
+      // Chegadas ao tesouro: { grupoId: { em, rota, tempo } }. Só a primeira vale.
+      onChegadas: (cb) => depois(() => {
+        const ref = db.ref("chegadas");
+        const h = ref.on("value", (s) => cb(s.val() || {}));
+        return () => ref.off("value", h);
+      }),
+      async registrarChegada(grupoId, dados) {
+        await pronto;
+        const registro = { rota: dados.rota, em: firebase.database.ServerValue.TIMESTAMP };
+        if (typeof dados.tempo === "number") registro.tempo = Math.round(dados.tempo);
+        await db.ref("chegadas/" + grupoId).transaction((atual) => (atual === null ? registro : undefined));
+      },
+      async removerChegada(grupoId) { await pronto; await db.ref("chegadas/" + grupoId).remove(); },
       async salvarCronometro(estado) { await pronto; await db.ref("cronometro").set(estado); },
 
       // Estações criadas pelas admins. null significa "usar o conteúdo padrão".
